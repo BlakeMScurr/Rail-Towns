@@ -1,5 +1,200 @@
 <h1>Rail Towns, Dunedin</h1>
 
-<p>The Rail Towns project is a proposal for 9 dense railway suburbs from Dunedin to Mosgiel. The dense suburbs will be lively, infrastructure efficient, and create many new homes and destinations. The rail service will pay for itself with fares and opt-in rates borne solely by new developments.</p>
-<p>In contrast to conventional development which often harms neighbours and ratepayers, Rail Towns are designed to benefit the community with minimal harm. New Rail Towns will be much more efficient than suburban sprawl on the the edges of the city, and will produce minimal traffic and infrastructure burden. Infill in old Rail Towns will be less harmful and contentious than usual infill, as the new developments disproportionately subsidise public transport, making traffic better, not worse.</p>
+<p>The Rail Towns project is a proposal for 9 dense railway suburbs from Dunedin to Mosgiel. The dense suburbs will be
+    lively, infrastructure efficient, and create many new homes and destinations. The rail service will pay for itself
+    with fares and opt-in rates borne solely by new developments.</p>
+<p>In contrast to conventional development which often harms neighbours and ratepayers, Rail Towns are designed to
+    benefit the community with minimal harm. New Rail Towns will be much more efficient than suburban sprawl on the the
+    edges of the city, and will produce minimal traffic and infrastructure burden. Infill in old Rail Towns will be less
+    harmful and contentious than usual infill, as the new developments disproportionately subsidise public transport,
+    making traffic better, not worse.</p>
 
+<div id="rail_widget"></div>
+
+<script>
+    class timetable_factory {
+        constructor() {
+            this.train_cost_per_service_hour = 1100; // NZ dollars
+            this.average_train_speed = 40; // kmph, not counting waits at stations
+            this.house_subsidy_per_year = 3000; // NZ dollars
+            this.service_hours_per_day = 20;
+            this.station_wait_time = 1/60; // hours
+            this.houses = [0, 0, 0, 0, 0, 0, 0, 0, 0]; // number of houses contributing with targetted rates in each suburb
+            this.suburbs = ["Kingston", "Caversham", "Burnside", "Green Island", "Abbotsford", "Chain Hills", "Wingatui", "West Wingatui", "Mosgiel"];
+            this.section_lengths = [2.06, 1.25, 2.39, 1.31, 1.81, 1.03, 2.03, 1.44, 1.65];
+        }
+
+        set_houses(houses) {
+            this.houses = houses;
+        }
+
+        set_station_wait_time(station_wait_time) {
+            this.station_wait_time = station_wait_time;
+        }
+
+
+        set_suburbs(suburbs) {
+            this.suburbs = suburbs;
+        }
+
+
+        set_section_lengths(section_lengths) {
+            this.section_lengths = section_lengths;
+        }
+
+        // calculates how many trips there are per week and which stations they stop at
+        //
+        // This function is not designed around timetable simplicity, legibility, or utility for the passengers.
+        // The main goal is to ensure that subsidies are divided so that:
+        // - New development cannot make any suburb worse off in terms of rates paid or services recieved
+        // - Regardless of the order of development, if the result of development is the same, the subsidies and serviecs are the same
+        //
+        // The latter is handled by making the services a function of the subsidies and a few parameters, rather
+        // than a function of the past state of the network.
+        // The former can probably be achieved by many algorithms, ours is the following:
+        // - Calculate how many services each station could afford to central, if it bore the full cost
+        // - Take the station with the fewest services, and create that many services involving all stations
+        // - Divide up the cost of those services pro rata according to section length, where shared sections are divided equally
+        // - Repeat until all suburbs run out of money
+        calculate_services() {
+            // fill up bank accounts
+            const bank_accounts = [];
+            this.houses.forEach(house => {
+                bank_accounts.push(house * this.house_subsidy_per_year);
+            });
+
+            // pre-calculate cumulative section lengths
+            const cumulative_section_lengths = [];
+            var sum = 0;
+            this.section_lengths.forEach(len => {
+                sum += len;
+                cumulative_section_lengths.push(sum);
+            });
+            console.log("cumulative", cumulative_section_lengths)
+
+            // iteratively add services
+            var services = [];
+            var x = 0;
+            while (x < 1000) {
+                x++;
+                // calculate possible dedicated services
+                const dedicated_services = [];
+                bank_accounts.forEach((account, i) => {
+                    const stops = i;
+                    const trip_length = (stops * this.station_wait_time + cumulative_section_lengths[i] / this.average_train_speed) * 2;
+                    console.log("initial trip length: " + trip_length)
+                    const trip_cost = trip_length * this.train_cost_per_service_hour; // 2 accounts for the round trip
+                    console.log("trip cost (initial calculation): " + trip_cost)
+                    const affordable_number_of_trips = Math.floor(account / trip_cost);
+                    dedicated_services.push(affordable_number_of_trips)
+                });
+
+
+                // find the correct number of services to add (greatest number of trips covering all eligible [non-broke] suburbs)
+                // TODO: note, there's an issue here, where we consider a suburb broke when it can't afford any dedicated trips, while it might be able to afford a portion of a trip - for now the money just stacks up in their account underutilised, which may be OK
+                const nonZeroValues = dedicated_services.filter(x => x !== 0);
+                const number_of_services_to_add = nonZeroValues.length ? Math.min(...nonZeroValues) : 0;
+                if (number_of_services_to_add === 0) {
+                    break;
+                }
+
+                // divide cost of service amongst relevant stations
+                {
+                    // find contributors for each section
+                    var section_contributors = [];
+                    var current_contributors = [];
+                    for (let i = dedicated_services.length - 1; i >= 0; i--) {
+                        if (dedicated_services[i] > 0) {
+                            current_contributors.push(i);
+                        }
+                        section_contributors.push([...current_contributors])
+                    }
+                    
+                    // calculate costs to each station
+                    var costs = new Array(dedicated_services).fill(0)
+                    section_contributors.forEach((contributors, section) => {
+                        if (contributors.length > 0) {
+                            const section_includes_stop = dedicated_services[section] != 0;
+                            const wait_time = section_includes_stop * this.station_wait_time;
+                            const travel_time = this.section_lengths[section] / this.average_train_speed;
+                            const trip_length = wait_time + travel_time;
+                            console.log("trip length: " + trip_length)
+                            const trip_cost = trip_length * this.train_cost_per_service_hour * 2; // 2 accounts for the round trip
+
+                            contributors.forEach(contributor => {
+                                costs[contributor] += trip_cost / contributors.length;
+                            });
+                        }
+                    });
+
+                    console.log("final cost of line: ", + costs)
+
+                    // charge costs
+                    costs.forEach((cost, i) => {
+                        bank_accounts[i] -= cost * number_of_services_to_add;
+                    });
+
+                    console.log(bank_accounts)
+
+                    
+                    // add services
+                    services.push({ stops: dedicated_services.map(Boolean), count: number_of_services_to_add })
+                }
+            }
+            return services
+        }
+
+    }
+
+    tests = [
+        {
+            name: "No development, 2 suburbs",
+            skip: true,
+            f: () => {
+                const tf = new timetable_factory();
+                tf.set_houses([0, 0])
+                tf.set_suburbs(["A", "B"])
+                tf.set_section_lengths([1, 1])
+
+                console.log(tf.calculate_services())
+            }
+        },
+        {
+            name: "1 Suburb no station wait time",
+            skip: true,
+            f: () => {
+                const tf = new timetable_factory();
+                tf.set_houses([1000])
+                tf.set_suburbs(["A"])
+                tf.set_section_lengths([1, 1])
+                tf.set_station_wait_time(0)
+
+                console.log(tf.calculate_services())
+            }
+        },
+        {
+            name: "1 Suburb",
+            skip: false,
+            f: () => {
+                const tf = new timetable_factory();
+                tf.set_houses([1000])
+                tf.set_suburbs(["A"])
+                tf.set_section_lengths([1, 1])
+
+                console.log(tf.calculate_services())
+            }
+        },
+    ]
+
+    function run_tests() {
+        tests.forEach(test => {
+            if (!test.skip) {
+                console.log("Running Test: " + test.name)
+                test.f()
+            }
+        });
+    }
+
+    run_tests()
+
+</script>
