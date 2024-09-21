@@ -12,13 +12,55 @@
 <div id="rail_widget"></div>
 
 <script>
+
+    class section_cost_breakdown {
+        constructor(wait_time, wait_payer, splitters, section_length) {
+            this.wait_time = wait_time;
+            this.wait_payer = wait_payer;
+            this.splitters = splitters;
+            this.section_length = section_length;
+        }
+    }
+
+    class service_cost_breakdown {
+        constructor(section_count) {
+            this.sections = new Array(section_count);
+        }
+
+        set_section(section_index, scb) {
+            if (section_index >= this.sections.length) {
+                throw new Error("Can't add cost for non-existent section")
+            }
+            this.sections[section_index] = scb;
+        }
+
+        describe_breakdown() {
+            return "TODO"
+        }
+
+        costs(train_speed, train_cost) {
+            var times = new Array(this.sections.length).fill(0) // the service time paid for by each suburb
+
+            this.sections.forEach((scb) => {
+                times[scb.wait_payer] += scb.wait_time;
+                
+                const section_time = scb.section_length / train_speed;
+                scb.splitters.forEach((splitter) => {
+                    times[splitter] += section_time / scb.splitters.length;
+                })
+            })
+
+            return times.map(time => time * train_cost);
+        }
+    }
+
     class timetable_factory {
         constructor() {
             this.train_cost_per_service_hour = 1100; // NZ dollars
             this.average_train_speed = 40; // kmph, not counting waits at stations
             this.house_subsidy_per_year = 3000; // NZ dollars
             this.service_hours_per_day = 20;
-            this.station_wait_time = 1/60; // hours
+            this.station_wait_time = 1 / 60; // hours
             this.houses = [0, 0, 0, 0, 0, 0, 0, 0, 0]; // number of houses contributing with targetted rates in each suburb
             this.suburbs = ["Kingston", "Caversham", "Burnside", "Green Island", "Abbotsford", "Chain Hills", "Wingatui", "West Wingatui", "Mosgiel"];
             this.section_lengths = [2.06, 1.25, 2.39, 1.31, 1.81, 1.03, 2.03, 1.44, 1.65];
@@ -42,9 +84,15 @@
             this.section_lengths = section_lengths;
         }
 
-        // calculates how many trips there are per week and which stations they stop at
+        // Calculates how many trips there are per week and which stations they stop at
+        // 
+        // Note that this assumes a single unforked line with a valuable destination at the end (i.e., the City Centre), and
+        // that the value of the rail service comes almost exclusively from the ability to travel to and from the end point.
+        // Handling forked (or in full generaltity, graph) networks, express services, or networks with dispersed value
+        // is an open problem.
         //
-        // This function is not designed around timetable simplicity, legibility, or utility for the passengers.
+        // This function is not designed around timetable simplicity or legibility, or even utility for the passengers.
+        // The purpose of the function is to create a rail network that can dynamically expand while concretely benefiting all stakeholders.
         // The main goal is to ensure that subsidies are divided so that:
         // - New development cannot make any suburb worse off in terms of rates paid or services recieved
         // - Regardless of the order of development, if the result of development is the same, the subsidies and serviecs are the same
@@ -52,10 +100,18 @@
         // The latter is handled by making the services a function of the subsidies and a few parameters, rather
         // than a function of the past state of the network.
         // The former can probably be achieved by many algorithms, ours is the following:
-        // - Calculate how many services each station could afford to central, if it bore the full cost
-        // - Take the station with the fewest services, and create that many services involving all stations
-        // - Divide up the cost of those services pro rata according to section length, where shared sections are divided equally
-        // - Repeat until all suburbs run out of money
+        // - Consider a service with that stops at all stations with money left to spend
+        // - Divide the cost of the service such that:
+        //     - each suburb pays for the stopping time at that station
+        //     - the cost of service along each section is divided equally by suburbs whose residents cross that section to reach town
+        //     - the cost of each section is proportional to its length
+        // - Order as many of these services as possible until a suburb runs out of money
+        // - Repeat
+        // 
+        // This scheme ensures that:
+        // - New stations in the middle of the line cover their marginal costs (stop time)
+        // - New stations at the end of the line cover their marginal costs (stop time and new section cost)
+        // - New development/subsidies at existing stations does not decrease service for any station
         calculate_services() {
             // fill up bank accounts
             const bank_accounts = [];
@@ -63,93 +119,44 @@
                 bank_accounts.push(house * this.house_subsidy_per_year);
             });
 
-            // pre-calculate cumulative section lengths
-            const cumulative_section_lengths = [];
-            var sum = 0;
-            this.section_lengths.forEach(len => {
-                sum += len;
-                cumulative_section_lengths.push(sum);
-            });
-            console.log("cumulative", cumulative_section_lengths)
+            // add services
+            const l = this.suburbs.length;
+            var participants = new Array(l).fill(true);
+            const services = [];
+            do {
+                const terminus = participants.lastIndexOf(true);
 
-            // iteratively add services
-            var services = [];
-            var x = 0;
-            while (x < 1000) {
-                x++;
-                // calculate possible dedicated services
-                const dedicated_services = [];
-                bank_accounts.forEach((account, i) => {
-                    const stops = i;
-                    const trip_length = (stops * this.station_wait_time + cumulative_section_lengths[i] / this.average_train_speed) * 2;
-                    console.log("initial trip length: " + trip_length)
-                    const trip_cost = trip_length * this.train_cost_per_service_hour; // 2 accounts for the round trip
-                    console.log("trip cost (initial calculation): " + trip_cost)
-                    const affordable_number_of_trips = Math.floor(account / trip_cost);
-                    dedicated_services.push(affordable_number_of_trips)
-                });
-
-
-                // find the correct number of services to add (greatest number of trips covering all eligible [non-broke] suburbs)
-                // TODO: note, there's an issue here, where we consider a suburb broke when it can't afford any dedicated trips, while it might be able to afford a portion of a trip - for now the money just stacks up in their account underutilised, which may be OK
-                const nonZeroValues = dedicated_services.filter(x => x !== 0);
-                const number_of_services_to_add = nonZeroValues.length ? Math.min(...nonZeroValues) : 0;
-                if (number_of_services_to_add === 0) {
-                    break;
-                }
-
-                // divide cost of service amongst relevant stations
-                {
-                    // find contributors for each section
-                    var section_contributors = [];
-                    var current_contributors = [];
-                    for (let i = dedicated_services.length - 1; i >= 0; i--) {
-                        if (dedicated_services[i] > 0) {
-                            current_contributors.push(i);
-                        }
-                        section_contributors.push([...current_contributors])
+                // distribute the cost of the service amongst the participants by section
+                const cost_breakdown = new service_cost_breakdown(l)
+                for (let i = 0; i <= terminus; i++) {
+                    const section_beneficiaries = [];
+                    for (let j = i; j < l; j++) {
+                        if (participants[j]) section_beneficiaries.push(j)
                     }
-                    
-                    // calculate costs to each station
-                    var costs = new Array(dedicated_services).fill(0)
-                    section_contributors.forEach((contributors, section) => {
-                        if (contributors.length > 0) {
-                            const section_includes_stop = dedicated_services[section] != 0;
-                            const wait_time = section_includes_stop * this.station_wait_time;
-                            const travel_time = this.section_lengths[section] / this.average_train_speed;
-                            const trip_length = wait_time + travel_time;
-                            console.log("trip length: " + trip_length)
-                            const trip_cost = trip_length * this.train_cost_per_service_hour * 2; // 2 accounts for the round trip
-
-                            contributors.forEach(contributor => {
-                                costs[contributor] += trip_cost / contributors.length;
-                            });
-                        }
-                    });
-
-                    console.log("final cost of line: ", + costs)
-
-                    // charge costs
-                    costs.forEach((cost, i) => {
-                        bank_accounts[i] -= cost * number_of_services_to_add;
-                    });
-
-                    console.log(bank_accounts)
-
-                    
-                    // add services
-                    services.push({ stops: dedicated_services.map(Boolean), count: number_of_services_to_add })
+                    cost_breakdown.set_section(i, new section_cost_breakdown(
+                        this.station_wait_time, i,
+                        section_beneficiaries,
+                        this.section_lengths[i]
+                    ));
                 }
-            }
-            return services
-        }
 
+                const costs = cost_breakdown.costs(this.average_train_speed, this.train_cost_per_service_hour);
+                const affordable_by_station = costs.map((cost, i) => Math.floor(bank_accounts[i] / cost));
+                const affordable = Math.min(...affordable_by_station.filter((v, i) => participants[i]));
+
+                if (affordable > 0) services.push({ count: affordable, participants: participants });
+
+                participants = participants.map(((v, i) => v && affordable_by_station[i] != affordable));
+            } while (participants.some(v => v === true))
+
+            return services;
+        }
     }
 
     tests = [
         {
             name: "No development, 2 suburbs",
-            skip: true,
+            skip: false,
             f: () => {
                 const tf = new timetable_factory();
                 tf.set_houses([0, 0])
@@ -161,12 +168,12 @@
         },
         {
             name: "1 Suburb no station wait time",
-            skip: true,
+            skip: false,
             f: () => {
                 const tf = new timetable_factory();
                 tf.set_houses([1000])
                 tf.set_suburbs(["A"])
-                tf.set_section_lengths([1, 1])
+                tf.set_section_lengths([1])
                 tf.set_station_wait_time(0)
 
                 console.log(tf.calculate_services())
@@ -179,7 +186,7 @@
                 const tf = new timetable_factory();
                 tf.set_houses([1000])
                 tf.set_suburbs(["A"])
-                tf.set_section_lengths([1, 1])
+                tf.set_section_lengths([1])
 
                 console.log(tf.calculate_services())
             }
