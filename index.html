@@ -153,6 +153,12 @@
         }
     }
 
+    function expectEqual(a,b) {
+        if (JSON.stringify(a) !== JSON.stringify(b)) {
+            throw new Error(JSON.stringify(a) + " !== " + JSON.stringify(b));
+        }
+    }
+
     tests = [
         {
             name: "No development, 2 suburbs",
@@ -163,11 +169,11 @@
                 tf.set_suburbs(["A", "B"])
                 tf.set_section_lengths([1, 1])
 
-                console.log(tf.calculate_services())
+                expectEqual(tf.calculate_services(), [])
             }
         },
         {
-            name: "1 Suburb no station wait time",
+            name: "1 Suburb, 1km, no station wait time",
             skip: false,
             f: () => {
                 const tf = new timetable_factory();
@@ -176,7 +182,22 @@
                 tf.set_section_lengths([1])
                 tf.set_station_wait_time(0)
 
-                console.log(tf.calculate_services())
+                // (1000 * 3000) / (1/40 * 1100) = 109090 (rounded down)
+                expectEqual(tf.calculate_services(), [{"count":109090,"participants":[true]}])
+            }
+        },
+        {
+            name: "1 Suburb, 10km, no station wait time",
+            skip: false,
+            f: () => {
+                const tf = new timetable_factory();
+                tf.set_houses([1000])
+                tf.set_suburbs(["A"])
+                tf.set_section_lengths([10])
+                tf.set_station_wait_time(0)
+
+                // (1000 * 3000) / (10/40 * 1100) = 10909 (rounded down)
+                expectEqual(tf.calculate_services(), [{"count":10909,"participants":[true]}])
             }
         },
         {
@@ -188,7 +209,8 @@
                 tf.set_suburbs(["A"])
                 tf.set_section_lengths([1])
 
-                console.log(tf.calculate_services())
+                // (1000 * 3000) / ((1 + 1/40) * 1100) = 10909 (rounded down)
+                expectEqual(tf.calculate_services(), [{"count":65454,"participants":[true]}])
             }
         },
     ]
