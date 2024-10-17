@@ -3,7 +3,7 @@ import type { Site, SocialObjects } from "./types";
 export const SITE: Site = {
   website: "https://blakemscurr.github.io",
   author: "Blake McAlevey-Scurr",
-  // profile: "https://satnaing.dev/",
+  profile: "",
   desc: "A Plan for our Housing Crisis",
   title: "Dunedin Rail Towns",
   ogImage: "astropaper-og.jpg",
