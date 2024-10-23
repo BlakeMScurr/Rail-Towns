@@ -2,9 +2,9 @@ import { defineConfig } from "astro/config";
 import tailwind from "@astrojs/tailwind";
 import react from "@astrojs/react";
 import remarkToc from "remark-toc";
-import remarkCollapse from "remark-collapse";
 import sitemap from "@astrojs/sitemap";
 import { SITE } from "./src/config";
+import development_calculator from "./src/widgets/development_calculator";
 
 // https://astro.build/config
 export default defineConfig({
@@ -19,12 +19,17 @@ export default defineConfig({
   markdown: {
     remarkPlugins: [
       remarkToc,
-      // [
-      //   remarkCollapse,
-      //   {
-      //     test: "Table of contents",
-      //   },
-      // ],
+      () => {
+        return (tree) => {
+          tree.children.forEach((heading, i) => {
+            if (heading.type === 'heading' && heading.children[0].value === 'Development Calculator') { // TODO: ensure that this child is of type text to supress error (logically it always should be)
+              tree.children[i] = {type: 'html',
+                value: development_calculator(),
+              };
+            }
+          });
+        }
+      },
     ],
     shikiConfig: {
       // For more themes, visit https://shiki.style/themes

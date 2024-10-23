@@ -96,6 +96,7 @@ If a land owner consents to the new zoning, their maximum building height will b
 However, as with setbacks, if the neighbours don't consent, there may be no additional rights to build. Again, as with setbacks, the height above the exclusion zone won't be a strict rule, but rather a area where neighbour's consent is needed. Contrast the following with 2GP rule 15.6.6.1:
 > A building requires the consent of a nearby resident if it intersects any line rising at 45 degrees from a point 2.5m above any point on that resident's property.
 
+## Development Calculator
 
 (TODO: visualisation)
 
