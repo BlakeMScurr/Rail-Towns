@@ -1,0 +1,65 @@
+<style>
+    #overlayCanvas {
+        background: url(/public/assets/wingatui.webp);
+        background-size: contain;
+        aspect-ratio: 1;
+        width: 100%;
+        height: 100%;
+    }
+</style>
+
+<canvas id="overlayCanvas"></canvas>
+
+<script>
+    async function f() {
+        // Get the image and canvas elements
+        const canvas = document.getElementById('overlayCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+        
+        var promise = await fetch("/assets/boundaries/wingatui.json")
+        var data = await promise
+        var multi_shapes = await data.json()
+        
+        corner_1 = [170.3739362792116, -45.86713246301571]
+        corner_2 = [170.40039685342913, -45.885962687973176]
+        x_factor = Math.abs(corner_1[0] - corner_2[0])
+        y_factor = Math.abs(corner_1[1] - corner_2[1])
+
+        multi_shapes = multi_shapes.map(multi_shape => {
+            return multi_shape.map(nest => {
+                return nest.map(shape => {
+                    return shape.map(point => {
+                        const translated = [point[0] - corner_1[0], point[1] - corner_2[1]]
+                        const normalised = [translated[0] / x_factor, translated[1] / y_factor]
+                        const stretched = [normalised[0] * canvas.width, normalised[1] * canvas.width]
+                        const inverted = [stretched[0], canvas.height - stretched[1]]
+                        return inverted
+                    })
+                })
+            })
+        })
+
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth = 2;
+
+        multi_shapes.forEach(multi_shape => {
+            multi_shape.forEach(shape => {
+                ctx.beginPath();
+                ctx.moveTo(shape[shape.length-1][0], shape[shape.length-1][1]);
+                shape.forEach((line) => {
+                    line.forEach((point) => {
+                        ctx.lineTo(point[0], point[1]);
+                    })
+                })
+                ctx.closePath();
+                ctx.stroke();
+            })
+        })
+    }
+
+    f()
+
+</script>

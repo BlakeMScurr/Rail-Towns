@@ -4,7 +4,8 @@ import react from "@astrojs/react";
 import remarkToc from "remark-toc";
 import sitemap from "@astrojs/sitemap";
 import { SITE } from "./src/config";
-import development_calculator from "./src/widgets/development_calculator";
+import * as fs from 'fs';
+import * as path from 'path';
 
 // https://astro.build/config
 export default defineConfig({
@@ -23,8 +24,10 @@ export default defineConfig({
         return (tree) => {
           tree.children.forEach((heading, i) => {
             if (heading.type === 'heading' && heading.children[0].value === 'Development Calculator') { // TODO: ensure that this child is of type text to supress error (logically it always should be)
-              tree.children[i] = {type: 'html',
-                value: development_calculator(),
+              const content = fs.readFileSync('./src/widgets/development_calculator.html', 'utf8');
+              tree.children[i] = {
+                type: 'html',
+                value: content,
               };
             }
           });
