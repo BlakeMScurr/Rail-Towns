@@ -1,6 +1,6 @@
 async function call_api(centre_x, centre_y, radius, max_results) {
     var geometry = true
-    var key = "21b1636ded7642f9af180db2efb1f784"
+    var key = "57cf56ae16a14a8eaa47f286730643ab" // get API key from browser by looking at the authorization header in network requests to the below url when clicking on a property here https://data.linz.govt.nz/layer/50804-nz-property-titles/
     var query = `https://data.linz.govt.nz/services/query/v1/vector.json/?v=1.2&layer=50804&x=${centre_x}&y=${centre_y}&radius=${radius}&max_results=${max_results}&geometry=${geometry}&with_field_names=true`
 
     var resp = await fetch(query, {
@@ -39,14 +39,23 @@ async function get_properties_in_square(centre_x, centre_y, length, depth) {
 }
 
 async function main() {
-    var properties = await get_properties_in_square(170.38781924467162, -45.877488782160306, 1000, 0)
-    properties.forEach((p) => {
+    var properties = await get_properties_in_square(170.37459682123404, -45.876531440172165, 20000, 0) // Eastern Wingatui
+    // var properties = await get_properties_in_square(170.3877585369411, -45.877485899610825, 4000, 0) // Train Station
+    console.log("[")
+    properties = [...properties.values()]
+    properties = properties.filter(p => p.geometry.type === 'MultiPolygon');
+
+    properties.forEach((p, i) => {
         if (p.geometry.type == 'MultiPolygon') {
             console.log(JSON.stringify(p.geometry.coordinates, null, 2))
+            if (i != properties.length - 1) {
+                console.log(",")
+            }
         } else {
             console.warn("Unknown geometry type ", p.geometry.type)
         }
     })
+    console.log("]")
     
 }
 
