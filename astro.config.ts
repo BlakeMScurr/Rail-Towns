@@ -22,7 +22,7 @@ export default defineConfig({
       () => {
         return (tree) => {
           tree.children.forEach((heading, i) => {
-            if (heading.type === 'heading' && heading.children[0].value === 'Development Calculator') { // TODO: ensure that this child is of type text to supress error (logically it always should be)
+            if (heading.type === 'heading' && 'value' in heading.children[0] && heading.children[0].value === 'Development Calculator') { // TODO: ensure that this child is of type text to supress error (logically it always should be)
               const content = fs.readFileSync('./src/widgets/development_calculator.html', 'utf8');
               tree.children[i] = {
                 type: 'html',
