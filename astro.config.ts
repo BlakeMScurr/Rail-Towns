@@ -5,7 +5,6 @@ import remarkToc from "remark-toc";
 import sitemap from "@astrojs/sitemap";
 import { SITE } from "./src/config";
 import * as fs from 'fs';
-import * as path from 'path';
 
 // https://astro.build/config
 export default defineConfig({
