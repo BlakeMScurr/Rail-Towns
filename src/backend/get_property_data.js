@@ -1,6 +1,6 @@
 async function call_api(centre_x, centre_y, radius, max_results) {
     var geometry = true
-    var key = "_" // get API key from browser by looking at the authorization header in network requests to the below url when clicking on a property here https://data.linz.govt.nz/layer/50804-nz-property-titles/
+    var key = process.env.key // get API key from browser by looking at the authorization header in network requests to the below url when clicking on a property here https://data.linz.govt.nz/layer/50804-nz-property-titles/
     var query = `https://data.linz.govt.nz/services/query/v1/vector.json/?v=1.2&layer=50804&x=${centre_x}&y=${centre_y}&radius=${radius}&max_results=${max_results}&geometry=${geometry}&with_field_names=true`
 
     var resp = await fetch(query, {
