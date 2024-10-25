@@ -58,22 +58,35 @@
         ctx.strokeStyle = 'red';
         ctx.lineWidth = 2;
 
-        draw_multishape = (multi_shape) => {
+        outline_multishape = (multi_shape) => {
             multi_shape.forEach(shape => {
-                ctx.beginPath();
-                ctx.moveTo(shape[shape.length-1][0], shape[shape.length-1][1]);
-                shape.forEach((line) => {
-                    line.forEach((point) => {
-                        ctx.lineTo(point[0], point[1]);
-                    })
-                })
-                ctx.closePath();
+                make_shape(shape)
                 ctx.stroke();
             })
         }
 
+        fill_multishape = (multi_shape) => {
+            multi_shape.forEach(shape => {
+                make_shape(shape)
+                ctx.fill();
+            })
+        }
+
+        make_shape = (shape) => {
+            ctx.beginPath();
+            ctx.moveTo(shape[shape.length-1][0], shape[shape.length-1][1]);
+            shape.forEach((line) => {
+                line.forEach((point) => {
+                    ctx.lineTo(point[0], point[1]);
+                })
+            })
+            ctx.closePath();
+            ctx.stroke();
+        }
+
+
         multi_shapes.forEach(multi_shape => {
-            draw_multishape(multi_shape)
+            outline_multishape(multi_shape)
         })
 
         var hovered_multishape = -1;
@@ -103,19 +116,26 @@
                 })
             })
 
+            var is_new = false
             if (hovered_multishape != new_hovered) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height)
-                ctx.strokeStyle = 'red';
-                multi_shapes.forEach(multi_shape => {
-                    draw_multishape(multi_shape)
-                })
+                if (hovered_multishape != -1) {
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.fillStyle = "rgba(0, 0, 0, 1)"
+                    fill_multishape(multi_shapes[hovered_multishape])
+                    ctx.globalCompositeOperation = "source-over";
+                    outline_multishape(multi_shapes[hovered_multishape])
+                }
+
                 hovered_multishape = new_hovered
+                is_new = true
             }
 
             if (hovered_multishape != -1) {
-                document.body.style.cursor = 'pointer';
-                ctx.strokeStyle = 'blue';
-                draw_multishape(multi_shapes[hovered_multishape])
+                if (is_new) {
+                    document.body.style.cursor = 'pointer';
+                    ctx.fillStyle = "rgba(255, 129, 126, 0.4)"
+                    fill_multishape(multi_shapes[hovered_multishape])
+                }
             } else {
                 document.body.style.cursor = 'default';
             }
