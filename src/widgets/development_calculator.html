@@ -113,8 +113,11 @@
             }
 
             if (hovered_multishape != -1) {
+                document.body.style.cursor = 'pointer';
                 ctx.strokeStyle = 'blue';
                 draw_multishape(multi_shapes[hovered_multishape])
+            } else {
+                document.body.style.cursor = 'default';
             }
         });
     }
