@@ -29,15 +29,27 @@
         x_factor = Math.abs(corner_1[0] - corner_2[0])
         y_factor = Math.abs(corner_1[1] - corner_2[1])
 
+        latitude_to_canvas = (point) => {
+            const translated = [point[0] - corner_1[0], point[1] - corner_2[1]]
+            const normalised = [translated[0] / x_factor, translated[1] / y_factor]
+            const stretched = [normalised[0] * canvas.width, normalised[1] * canvas.width]
+            const inverted = [stretched[0], canvas.height - stretched[1]]
+            return inverted
+        }
+
+        canvas_to_latitude = (point) => {
+            const inverted = [point[0], canvas.height - point[1]]
+            const normalised = [inverted[0] / canvas.width, inverted[1] / canvas.width]
+            const stretched = [normalised[0] * x_factor, normalised[1] * y_factor]
+            const translated = [stretched[0] + corner_1[0], stretched[1] + corner_2[1]]
+            return translated
+        }
+
         multi_shapes = multi_shapes.map(multi_shape => {
             return multi_shape.map(nest => {
                 return nest.map(shape => {
                     return shape.map(point => {
-                        const translated = [point[0] - corner_1[0], point[1] - corner_2[1]]
-                        const normalised = [translated[0] / x_factor, translated[1] / y_factor]
-                        const stretched = [normalised[0] * canvas.width, normalised[1] * canvas.width]
-                        const inverted = [stretched[0], canvas.height - stretched[1]]
-                        return inverted
+                        return latitude_to_canvas(point)
                     })
                 })
             })
@@ -46,7 +58,7 @@
         ctx.strokeStyle = 'red';
         ctx.lineWidth = 2;
 
-        multi_shapes.forEach(multi_shape => {
+        draw_multishape = (multi_shape) => {
             multi_shape.forEach(shape => {
                 ctx.beginPath();
                 ctx.moveTo(shape[shape.length-1][0], shape[shape.length-1][1]);
@@ -58,8 +70,130 @@
                 ctx.closePath();
                 ctx.stroke();
             })
+        }
+
+        multi_shapes.forEach(multi_shape => {
+            draw_multishape(multi_shape)
         })
+
+        var hovered_multishape = -1;
+        canvas.addEventListener('mousemove', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = (event.clientX - rect.left);
+            const mouseY = (event.clientY - rect.top)
+            const point = [mouseX, mouseY];
+
+            var new_hovered = -1
+            multi_shapes.forEach((multi_shape, i) => {
+                multi_shape.forEach(shape => {
+                    var is_hovered = false
+                    shape.forEach((line) => {
+                        var intersection_count = 0;
+                        for (let i = 0; i < line.length; i++) {
+                            const a = line[i];
+                            const b = line[(i+1)%line.length];
+                            if (doIntersect(new Point(point[0], point[1]), new Point(point[0], -100000), new Point(a[0], a[1]), new Point(b[0], b[1]))) {
+                                intersection_count++
+                            }
+                        }
+                        if (intersection_count % 2 == 1) {
+                            new_hovered = i
+                        }
+                    })
+                })
+            })
+
+            if (hovered_multishape != new_hovered) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height)
+                ctx.strokeStyle = 'red';
+                multi_shapes.forEach(multi_shape => {
+                    draw_multishape(multi_shape)
+                })
+                hovered_multishape = new_hovered
+            }
+
+            if (hovered_multishape != -1) {
+                ctx.strokeStyle = 'blue';
+                draw_multishape(multi_shapes[hovered_multishape])
+            }
+        });
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////// ----------- From https://www.geeksforgeeks.org/check-if-two-given-line-segments-intersect/ ----------- ////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    class Point 
+    { 
+        constructor(x, y) 
+        { 
+            this.x = x; 
+                this.y = y; 
+        } 
+    } 
+    
+    // Given three collinear points p, q, r, the function checks if 
+    // point q lies on line segment 'pr' 
+    function onSegment(p, q, r) 
+    { 
+        if (q.x <= Math.max(p.x, r.x) && q.x >= Math.min(p.x, r.x) && 
+            q.y <= Math.max(p.y, r.y) && q.y >= Math.min(p.y, r.y)) 
+        return true; 
+        
+        return false; 
+    } 
+    
+    // To find orientation of ordered triplet (p, q, r). 
+    // The function returns following values 
+    // 0 --> p, q and r are collinear 
+    // 1 --> Clockwise 
+    // 2 --> Counterclockwise 
+    function orientation(p, q, r) 
+    { 
+    
+        // See https://www.geeksforgeeks.org/orientation-3-ordered-points/ 
+        // for details of below formula. 
+        let val = (q.y - p.y) * (r.x - q.x) - 
+                (q.x - p.x) * (r.y - q.y); 
+        
+        if (val == 0) return 0; // collinear 
+        
+        return (val > 0)? 1: 2; // clock or counterclock wise 
+    } 
+    
+    // The main function that returns true if line segment 'p1q1' 
+    // and 'p2q2' intersect. 
+    function doIntersect(p1, q1, p2, q2) 
+    {
+        // Find the four orientations needed for general and 
+        // special cases 
+        let o1 = orientation(p1, q1, p2); 
+        let o2 = orientation(p1, q1, q2); 
+        let o3 = orientation(p2, q2, p1); 
+        let o4 = orientation(p2, q2, q1); 
+        
+        // General case 
+        if (o1 != o2 && o3 != o4) 
+            return true; 
+        
+        // Special Cases 
+        // p1, q1 and p2 are collinear and p2 lies on segment p1q1 
+        if (o1 == 0 && onSegment(p1, p2, q1)) return true; 
+        
+        // p1, q1 and q2 are collinear and q2 lies on segment p1q1 
+        if (o2 == 0 && onSegment(p1, q2, q1)) return true; 
+        
+        // p2, q2 and p1 are collinear and p1 lies on segment p2q2 
+        if (o3 == 0 && onSegment(p2, p1, q2)) return true; 
+        
+        // p2, q2 and q1 are collinear and q1 lies on segment p2q2 
+        if (o4 == 0 && onSegment(p2, q1, q2)) return true; 
+        
+        return false; // Doesn't fall in any of the above cases 
+    } 
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     f()
 
