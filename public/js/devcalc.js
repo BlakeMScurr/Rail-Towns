@@ -76,33 +76,9 @@ async function f() {
         outline_multishape(multi_shape)
     })
 
+    
     var hovered_multishape = -1;
-    canvas.addEventListener('mousemove', (event) => {
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = (event.clientX - rect.left);
-        const mouseY = (event.clientY - rect.top)
-        const point = [mouseX, mouseY];
-
-        var new_hovered = -1
-        multi_shapes.forEach((multi_shape, i) => {
-            multi_shape.forEach(shape => {
-                var is_hovered = false
-                shape.forEach((line) => {
-                    var intersection_count = 0;
-                    for (let i = 0; i < line.length; i++) {
-                        const a = line[i];
-                        const b = line[(i+1)%line.length];
-                        if (doIntersect(new Point(point[0], point[1]), new Point(point[0], -100000), new Point(a[0], a[1]), new Point(b[0], b[1]))) {
-                            intersection_count++
-                        }
-                    }
-                    if (intersection_count % 2 == 1) {
-                        new_hovered = i
-                    }
-                })
-            })
-        })
-
+    drawHighlighting = (new_hovered) => {
         var is_new = false
         if (hovered_multishape != new_hovered) {
             if (hovered_multishape != -1) {
@@ -126,43 +102,75 @@ async function f() {
         } else {
             document.body.style.cursor = 'default';
         }
+    }
+
+    canvas.addEventListener('mousemove', (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = (event.clientX - rect.left);
+        const mouseY = (event.clientY - rect.top)
+        const point = [mouseX, mouseY];
+
+        var new_hovered = -1
+        multi_shapes.forEach((multi_shape, i) => {
+            multi_shape.forEach(shape => {
+                shape.forEach((line) => {
+                    var intersection_count = 0;
+                    for (let i = 0; i < line.length; i++) {
+                        const a = line[i];
+                        const b = line[(i+1)%line.length];
+                        if (doIntersect(new Point(point[0], point[1]), new Point(point[0], -100000), new Point(a[0], a[1]), new Point(b[0], b[1]))) {
+                            intersection_count++
+                        }
+                    }
+                    if (intersection_count % 2 == 1) {
+                        new_hovered = i
+                    }
+                })
+            })
+        })
+
+        drawHighlighting(new_hovered)
     });
 
-    let initialDistance = null;
-    let pinchZooming = false;
+    canvas.addEventListener('mouseleave', (_) => {
+        drawHighlighting(-1)
+    })
 
-    canvas.addEventListener('touchmove', (event) => {
+    // let initialDistance = null;
+    // let pinchZooming = false;
 
-        if (event.touches.length === 2) {
-            const touch1 = event.touches[0];
-            const touch2 = event.touches[1];
+    // canvas.addEventListener('touchmove', (event) => {
 
-            // Calculate the distance between the two touch points
-            const currentDistance = Math.hypot(
-                touch2.pageX - touch1.pageX,
-                touch2.pageY - touch1.pageY
-            );
+    //     if (event.touches.length === 2) {
+    //         const touch1 = event.touches[0];
+    //         const touch2 = event.touches[1];
 
-            if (!pinchZooming) {
-                // Store the initial distance when the gesture starts
-                initialDistance = currentDistance;
-                pinchZooming = true;
-            } else {
-                if (currentDistance > initialDistance) {
-                    console.log('Pinch zooming in');
-                    // Your zoom-in logic here
-                } else {
-                    console.log('Pinch zooming out');
-                    // Your zoom-out logic here
-                }
-            }
-        }
-    });
+    //         // Calculate the distance between the two touch points
+    //         const currentDistance = Math.hypot(
+    //             touch2.pageX - touch1.pageX,
+    //             touch2.pageY - touch1.pageY
+    //         );
 
-    canvas.addEventListener('touchend', () => {
-        pinchZooming = false;
-        initialDistance = null;
-    });
+    //         if (!pinchZooming) {
+    //             // Store the initial distance when the gesture starts
+    //             initialDistance = currentDistance;
+    //             pinchZooming = true;
+    //         } else {
+    //             if (currentDistance > initialDistance) {
+    //                 console.log('Pinch zooming in');
+    //                 // Your zoom-in logic here
+    //             } else {
+    //                 console.log('Pinch zooming out');
+    //                 // Your zoom-out logic here
+    //             }
+    //         }
+    //     }
+    // });
+
+    // canvas.addEventListener('touchend', () => {
+    //     pinchZooming = false;
+    //     initialDistance = null;
+    // });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
