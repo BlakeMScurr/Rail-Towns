@@ -4,7 +4,9 @@ import react from "@astrojs/react";
 import remarkToc from "remark-toc";
 import sitemap from "@astrojs/sitemap";
 import { SITE } from "./src/config";
-import * as fs from 'fs';
+import DevelopmentCalculator from "./src/components/DevelopmentCalculator.tsx";
+import { renderToString } from 'react-dom/server';
+import React from "react";
 
 // https://astro.build/config
 export default defineConfig({
@@ -23,10 +25,9 @@ export default defineConfig({
         return (tree) => {
           tree.children.forEach((heading, i) => {
             if (heading.type === 'heading' && 'value' in heading.children[0] && heading.children[0].value === 'Development Calculator') { // TODO: ensure that this child is of type text to supress error (logically it always should be)
-              const content = fs.readFileSync('./src/widgets/development_calculator.html', 'utf8');
               tree.children[i] = {
                 type: 'html',
-                value: content,
+                value: renderToString(React.createElement(DevelopmentCalculator)),
               };
             }
           });
