@@ -3,12 +3,20 @@ import * as fs from 'fs';
   
 export default function DevelopmentCalculator({}: Props) {
     const css = `
-    #overlayCanvas {
+    #overviewCanvas {
         background: url(/assets/wingatui.webp);
         background-size: contain;
         aspect-ratio: 1;
-        width: 100%;
-        height: 100%;
+        width: 50%;
+        height: 50%;
+        display: inline-block;
+    }
+
+    #detailCanvas {
+        aspect-ratio: 1;
+        width: 50%;
+        height: 50%;
+        display: inline-block;
     }`
 
     return <div>
@@ -16,7 +24,8 @@ export default function DevelopmentCalculator({}: Props) {
             {css}
         </style>
 
-        <canvas id="overlayCanvas"></canvas>
+        <canvas id="overviewCanvas"></canvas>
+        <canvas id="detailCanvas"></canvas>
 
         <script src="/js/devcalc.js"></script>
     </div>

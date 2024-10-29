@@ -1,6 +1,6 @@
 async function f() {
     // Get the image and canvas elements
-    const canvas = document.getElementById('overlayCanvas');
+    const canvas = document.getElementById('overviewCanvas');
     const ctx = canvas.getContext('2d');
 
     canvas.width = canvas.clientWidth;
@@ -9,6 +9,18 @@ async function f() {
     var promise = await fetch("/assets/boundaries/wingatui.json")
     var data = await promise
     var multi_shapes = await data.json()
+
+    var selected_shape = 16;
+
+    function render_detail() {
+        const canvas = document.getElementById('detailCanvas');
+        const ctx = canvas.getContext('2d');
+    
+        ctx.fillStyle = 'blue';
+        ctx.fillRect(10,10, 30, 40);
+    }
+
+    render_detail()
     
     corner_1 = [170.37331306790603, -45.86717048147928]
     corner_2 = [170.40074611871748, -45.886132291960315]
@@ -42,8 +54,8 @@ async function f() {
         })
     })
 
-    ctx.strokeStyle = 'red';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgb(0, 150, 255)';
+    ctx.lineWidth = 0.5;
 
     outline_multishape = (multi_shape) => {
         multi_shape.forEach(shape => {
@@ -72,9 +84,18 @@ async function f() {
     }
 
 
+    drawSelected = () => {
+        ctx.fillStyle = "rgba(255, 129, 126, 1)"
+        fill_multishape(multi_shapes[selected_shape])
+        outline_multishape(multi_shapes[selected_shape])
+    }
+
+
     multi_shapes.forEach(multi_shape => {
         outline_multishape(multi_shape)
     })
+
+    drawSelected()
 
     
     var hovered_multishape = -1;
@@ -86,7 +107,11 @@ async function f() {
                 ctx.fillStyle = "rgba(0, 0, 0, 1)"
                 fill_multishape(multi_shapes[hovered_multishape])
                 ctx.globalCompositeOperation = "source-over";
-                outline_multishape(multi_shapes[hovered_multishape])
+                if (hovered_multishape != selected_shape) {
+                    outline_multishape(multi_shapes[hovered_multishape])
+                } else {
+                    drawSelected()
+                }
             }
 
             hovered_multishape = new_hovered
@@ -96,7 +121,7 @@ async function f() {
         if (hovered_multishape != -1) {
             if (is_new) {
                 document.body.style.cursor = 'pointer';
-                ctx.fillStyle = "rgba(255, 129, 126, 0.4)"
+                ctx.fillStyle = "rgb(0, 150, 255, 0.4)"
                 fill_multishape(multi_shapes[hovered_multishape])
             }
         } else {
@@ -124,6 +149,25 @@ async function f() {
         }
     }
 
+    canvas.addEventListener('click', (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = (event.clientX - rect.left);
+        const mouseY = (event.clientY - rect.top)
+        const point = [mouseX, mouseY];
+
+        for (let i = 0; i < multi_shapes.length; i++) {
+            if (multi_shape_contains_point(multi_shapes[i], point)) {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.fillStyle = "rgba(0, 0, 0, 1)"
+                fill_multishape(multi_shapes[selected_shape])
+                ctx.globalCompositeOperation = "source-over";
+                selected_shape = i
+                drawSelected()
+                return
+            }
+        }
+    }) 
+
     canvas.addEventListener('mousemove', (event) => {
         const rect = canvas.getBoundingClientRect();
         const mouseX = (event.clientX - rect.left);
@@ -136,7 +180,7 @@ async function f() {
         }
 
         var new_hovered = -1
-        for (let i = 0; i < multi_shapes.length; i++) {
+        for (let i = 0; i < multi_shapes.length; i++) { // TODO: optimise this by checking neighbours first
             if (multi_shape_contains_point(multi_shapes[i], point)) {
                 new_hovered = i
                 break
@@ -150,41 +194,8 @@ async function f() {
         drawHighlighting(-1)
     })
 
-    // let initialDistance = null;
-    // let pinchZooming = false;
+    // TODO: zooming and panning
 
-    // canvas.addEventListener('touchmove', (event) => {
-
-    //     if (event.touches.length === 2) {
-    //         const touch1 = event.touches[0];
-    //         const touch2 = event.touches[1];
-
-    //         // Calculate the distance between the two touch points
-    //         const currentDistance = Math.hypot(
-    //             touch2.pageX - touch1.pageX,
-    //             touch2.pageY - touch1.pageY
-    //         );
-
-    //         if (!pinchZooming) {
-    //             // Store the initial distance when the gesture starts
-    //             initialDistance = currentDistance;
-    //             pinchZooming = true;
-    //         } else {
-    //             if (currentDistance > initialDistance) {
-    //                 console.log('Pinch zooming in');
-    //                 // Your zoom-in logic here
-    //             } else {
-    //                 console.log('Pinch zooming out');
-    //                 // Your zoom-out logic here
-    //             }
-    //         }
-    //     }
-    // });
-
-    // canvas.addEventListener('touchend', () => {
-    //     pinchZooming = false;
-    //     initialDistance = null;
-    // });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
