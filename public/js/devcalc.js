@@ -104,30 +104,44 @@ async function f() {
         }
     }
 
+    const multi_shape_contains_point = (multi_shape, point) => {
+        for (let s = 0; s < multi_shape.length; s++) {
+            const shape = multi_shape[s];
+            for (let l = 0; l < shape.length; l++) {
+                const line = shape[l];
+                var intersection_count = 0;
+                for (let i = 0; i < line.length; i++) {
+                    const a = line[i];
+                    const b = line[(i+1)%line.length];
+                    if (doIntersect(new Point(point[0], point[1]), new Point(point[0], -100000), new Point(a[0], a[1]), new Point(b[0], b[1]))) {
+                        intersection_count++
+                    }
+                }
+                if (intersection_count % 2 == 1) {
+                    return true
+                }
+            }
+        }
+    }
+
     canvas.addEventListener('mousemove', (event) => {
         const rect = canvas.getBoundingClientRect();
         const mouseX = (event.clientX - rect.left);
         const mouseY = (event.clientY - rect.top)
         const point = [mouseX, mouseY];
 
+        if (hovered_multishape != -1 && multi_shape_contains_point(multi_shapes[hovered_multishape], point)) {
+            drawHighlighting(hovered_multishape)
+            return
+        }
+
         var new_hovered = -1
-        multi_shapes.forEach((multi_shape, i) => {
-            multi_shape.forEach(shape => {
-                shape.forEach((line) => {
-                    var intersection_count = 0;
-                    for (let i = 0; i < line.length; i++) {
-                        const a = line[i];
-                        const b = line[(i+1)%line.length];
-                        if (doIntersect(new Point(point[0], point[1]), new Point(point[0], -100000), new Point(a[0], a[1]), new Point(b[0], b[1]))) {
-                            intersection_count++
-                        }
-                    }
-                    if (intersection_count % 2 == 1) {
-                        new_hovered = i
-                    }
-                })
-            })
-        })
+        for (let i = 0; i < multi_shapes.length; i++) {
+            if (multi_shape_contains_point(multi_shapes[i], point)) {
+                new_hovered = i
+                break
+            }
+        }
 
         drawHighlighting(new_hovered)
     });
