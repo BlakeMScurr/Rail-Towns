@@ -14,6 +14,8 @@ async function f() {
 
     var selected_shape = 16;
 
+    var rendernewscene = () => {}
+
     function render_detail() {
         const detailCanvas = document.getElementById('detailCanvas');
         const overviewCanvas = document.getElementById('overviewCanvas');
@@ -26,80 +28,76 @@ async function f() {
         detailCanvas.appendChild( renderer.domElement );
 
         const create_multishape = (multishape) => {
-            // const shape = multishape[0][0] // TODO: all parts, and why is this doulby nested?
-            const shape = [
-                [0, 1],
-                [1, 0],
-                [1, 1]
-            ];
-            
-            // const vertices = [];
-            // const indicesOfFaces = [];
-            
-            // Create vertices for bottom and top layers of the extruded triangle
-            // shape.forEach(point => {
-            //     vertices.push(point[0], point[1], 0);  // Bottom face (z=0)
-            //     vertices.push(point[0], point[1], 1);  // Top face (z=1)
-            // });
-            
-            // Add indices for the bottom face
-            // indicesOfFaces.push(0, 2, 4);
-            
-            // Add indices for the top face (in reverse order for correct normal)
-            // indicesOfFaces.push(1, 3, 5);
-            
-            // Add indices for the side faces
-            // for (let i = 0; i < shape.length; i++) {
-            //     const next = (i + 1) % shape.length;
-            //     indicesOfFaces.push(
-            //         i * 2, next * 2, i * 2 + 1,  // First triangle of side face
-            //         next * 2, next * 2 + 1, i * 2 + 1,  // Second triangle of side face
-            //     );
-            // }
-            
-            // console.log(vertices);
-            // console.log(indicesOfFaces);
+            const rawPath = multishape[0][0] // TODO: all parts, and why is this doulby nested?
+            var lowest_x = Infinity;
+            var lowest_y = Infinity;
+            rawPath.forEach(point => {
+                if (point[0] < lowest_x) {
+                    lowest_x = point[0]
+                }
+                if (point[1] < lowest_y) {
+                    lowest_y = point[1]
+                }
+            })
 
-            const vertices = [
-                0,0,0,
-                0,0,1,
-                0,1,0,
-                1,0,0,
-            ]
-            const indicesOfFaces = [
-                1,2,3,
-                0,2,3,
-                0,1,3,
-                0,1,2,
+            const positivePath = rawPath.map((point) => [point[0] - lowest_x, point[1] - lowest_y])
 
-                // rewound
-                2,1,3,
-                2,0,3,
-                1,0,3,
-                1,0,2,
-            ]
+            var highest_x = 0;
+            var highest_y = 0;
+            positivePath.forEach(point => {
+                if (point[0] > highest_x) {
+                    highest_x = point[0];
+                }
+                if (point[1] > highest_y) {
+                    highest_y = point[1];
+                }
+            })
             
-            return new THREE.PolyhedronGeometry(vertices, indicesOfFaces, 10, 20);
+            const normalisedPath = positivePath.map((point) => [point[0]/highest_x, point[1]/highest_y])
+            const path = normalisedPath.map((point) => [point[0]-0.5, point[1]-0.5])
+
+            const depth = 0.5;
+
+            const shape = new THREE.Shape();
+            shape.moveTo(path[path.length-1][0], path[path.length-1][1]);
+            path.forEach((point) => {
+                shape.lineTo(point[0], point[1] );
+            })
+
+            const extrudeSettings = {
+                steps: 1,
+                depth: depth,
+                bevelEnabled: false,
+            };
+
+            const geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+            const solidMaterial = new THREE.MeshBasicMaterial( { color: "rgba(255, 0, 0, 0.5)" } );
+            const wireMaterial = new THREE.MeshBasicMaterial( { color: 0x00ff00, wireframe: true } );
+            return [new THREE.Mesh( geometry, solidMaterial ), new THREE.Mesh( geometry, wireMaterial )];
         }
 
-        // const c = new THREE.BoxGeometry( 1, 1, 1 );
-        // const m = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-        // const cube = new THREE.Mesh( c, m );
-        // scene.add( cube );
-        const geometry = create_multishape(multi_shapes[selected_shape])
-        const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-        const shape = new THREE.Mesh( geometry, material );
-        scene.add( shape );
+        var shape;
+        rendernewscene = () => {
+            if (shape) {
+                scene.remove(shape[0])
+                scene.remove(shape[1])
+            }
+            shape = create_multishape(multi_shapes[selected_shape])
+            scene.add(shape[0])
+            scene.add(shape[1])
+        }
 
-        camera.position.z = 20;
+        rendernewscene()
 
+        const camera_distance = 2;
 
+        camera.position.z = camera_distance;
+        camera.position.y = -camera_distance;
+        camera.rotation.x += Math.PI/4
 
         function animate() {
-            // cube.rotation.x += 0.01;
-            // cube.rotation.y += 0.01;
-            shape.rotation.x += 0.01;
-            shape.rotation.y += 0.01;
+            shape[0].rotation.z += 0.01;
+            shape[1].rotation.z += 0.01;
             renderer.render( scene, camera );
         }
         renderer.setAnimationLoop( animate );
@@ -248,6 +246,7 @@ async function f() {
                 ctx.globalCompositeOperation = "source-over";
                 selected_shape = i
                 drawSelected()
+                rendernewscene()
                 return
             }
         }
