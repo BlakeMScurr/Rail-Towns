@@ -1,3 +1,5 @@
+import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.169.0/three.module.min.js';
+
 async function f() {
     // Get the image and canvas elements
     const canvas = document.getElementById('overviewCanvas');
@@ -13,22 +15,105 @@ async function f() {
     var selected_shape = 16;
 
     function render_detail() {
-        const canvas = document.getElementById('detailCanvas');
-        const ctx = canvas.getContext('2d');
-    
-        ctx.fillStyle = 'blue';
-        ctx.fillRect(10,10, 30, 40);
+        const detailCanvas = document.getElementById('detailCanvas');
+        const overviewCanvas = document.getElementById('overviewCanvas');
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize( overviewCanvas.width, overviewCanvas.height );
+        detailCanvas.appendChild( renderer.domElement );
+
+        const create_multishape = (multishape) => {
+            // const shape = multishape[0][0] // TODO: all parts, and why is this doulby nested?
+            const shape = [
+                [0, 1],
+                [1, 0],
+                [1, 1]
+            ];
+            
+            // const vertices = [];
+            // const indicesOfFaces = [];
+            
+            // Create vertices for bottom and top layers of the extruded triangle
+            // shape.forEach(point => {
+            //     vertices.push(point[0], point[1], 0);  // Bottom face (z=0)
+            //     vertices.push(point[0], point[1], 1);  // Top face (z=1)
+            // });
+            
+            // Add indices for the bottom face
+            // indicesOfFaces.push(0, 2, 4);
+            
+            // Add indices for the top face (in reverse order for correct normal)
+            // indicesOfFaces.push(1, 3, 5);
+            
+            // Add indices for the side faces
+            // for (let i = 0; i < shape.length; i++) {
+            //     const next = (i + 1) % shape.length;
+            //     indicesOfFaces.push(
+            //         i * 2, next * 2, i * 2 + 1,  // First triangle of side face
+            //         next * 2, next * 2 + 1, i * 2 + 1,  // Second triangle of side face
+            //     );
+            // }
+            
+            // console.log(vertices);
+            // console.log(indicesOfFaces);
+
+            const vertices = [
+                0,0,0,
+                0,0,1,
+                0,1,0,
+                1,0,0,
+            ]
+            const indicesOfFaces = [
+                1,2,3,
+                0,2,3,
+                0,1,3,
+                0,1,2,
+
+                // rewound
+                2,1,3,
+                2,0,3,
+                1,0,3,
+                1,0,2,
+            ]
+            
+            return new THREE.PolyhedronGeometry(vertices, indicesOfFaces, 10, 20);
+        }
+
+        // const c = new THREE.BoxGeometry( 1, 1, 1 );
+        // const m = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+        // const cube = new THREE.Mesh( c, m );
+        // scene.add( cube );
+        const geometry = create_multishape(multi_shapes[selected_shape])
+        const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+        const shape = new THREE.Mesh( geometry, material );
+        scene.add( shape );
+
+        camera.position.z = 20;
+
+
+
+        function animate() {
+            // cube.rotation.x += 0.01;
+            // cube.rotation.y += 0.01;
+            shape.rotation.x += 0.01;
+            shape.rotation.y += 0.01;
+            renderer.render( scene, camera );
+        }
+        renderer.setAnimationLoop( animate );
     }
 
     render_detail()
     
-    corner_1 = [170.37331306790603, -45.86717048147928]
-    corner_2 = [170.40074611871748, -45.886132291960315]
+    const corner_1 = [170.37331306790603, -45.86717048147928]
+    const corner_2 = [170.40074611871748, -45.886132291960315]
 
-    x_factor = Math.abs(corner_1[0] - corner_2[0])
-    y_factor = Math.abs(corner_1[1] - corner_2[1])
+    const x_factor = Math.abs(corner_1[0] - corner_2[0])
+    const y_factor = Math.abs(corner_1[1] - corner_2[1])
 
-    latitude_to_canvas = (point) => {
+    const latitude_to_canvas = (point) => {
         const translated = [point[0] - corner_1[0], point[1] - corner_2[1]]
         const normalised = [translated[0] / x_factor, translated[1] / y_factor]
         const stretched = [normalised[0] * canvas.width, normalised[1] * canvas.width]
@@ -36,7 +121,7 @@ async function f() {
         return inverted
     }
 
-    canvas_to_latitude = (point) => {
+    const canvas_to_latitude = (point) => {
         const inverted = [point[0], canvas.height - point[1]]
         const normalised = [inverted[0] / canvas.width, inverted[1] / canvas.width]
         const stretched = [normalised[0] * x_factor, normalised[1] * y_factor]
@@ -44,7 +129,7 @@ async function f() {
         return translated
     }
 
-    multi_shapes = multi_shapes.map(multi_shape => {
+    var multi_shapes = multi_shapes.map(multi_shape => {
         return multi_shape.map(nest => {
             return nest.map(shape => {
                 return shape.map(point => {
@@ -57,21 +142,21 @@ async function f() {
     ctx.strokeStyle = 'rgb(0, 150, 255)';
     ctx.lineWidth = 0.5;
 
-    outline_multishape = (multi_shape) => {
+    const outline_multishape = (multi_shape) => {
         multi_shape.forEach(shape => {
             make_shape(shape)
             ctx.stroke();
         })
     }
 
-    fill_multishape = (multi_shape) => {
+    const fill_multishape = (multi_shape) => {
         multi_shape.forEach(shape => {
             make_shape(shape)
             ctx.fill();
         })
     }
 
-    make_shape = (shape) => {
+    const make_shape = (shape) => {
         ctx.beginPath();
         ctx.moveTo(shape[shape.length-1][0], shape[shape.length-1][1]);
         shape.forEach((line) => {
@@ -84,8 +169,8 @@ async function f() {
     }
 
 
-    drawSelected = () => {
-        ctx.fillStyle = "rgba(255, 129, 126, 1)"
+    const drawSelected = () => {
+        ctx.fillStyle = "#AA4A44"
         fill_multishape(multi_shapes[selected_shape])
         outline_multishape(multi_shapes[selected_shape])
     }
@@ -99,7 +184,7 @@ async function f() {
 
     
     var hovered_multishape = -1;
-    drawHighlighting = (new_hovered) => {
+    const drawHighlighting = (new_hovered) => {
         var is_new = false
         if (hovered_multishape != new_hovered) {
             if (hovered_multishape != -1) {
