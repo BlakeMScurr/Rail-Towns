@@ -98,8 +98,6 @@ However, as with setbacks, if the neighbours don't consent, there may be no addi
 
 ## Development Calculator
 
-(TODO: visualisation)
-
 ## Land Usage
 
 
