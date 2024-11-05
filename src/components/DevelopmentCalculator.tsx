@@ -17,6 +17,10 @@ export default function DevelopmentCalculator({}: Props) {
         height: 50%;
         display: inline-block;
         vertical-align: top;
+    }
+        
+    #address {
+        text-align: center;
     }`
 
     return <div>
@@ -26,6 +30,7 @@ export default function DevelopmentCalculator({}: Props) {
 
         <canvas id="overviewCanvas"></canvas>
         <div id="detailCanvas"></div>
+        <h3 id="address"></h3>
 
         <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.169.0/three.module.min.js" integrity="sha512-fFc6JwwOG7dmtOGpA/X3+HGW1XdDp7818iuqwDEx14Imh4QSh7q91BPz4EdNeHR8lLDaMRYuSWqv7Ts2dbZa1Q==" crossOrigin="anonymous" referrerPolicy="no-referrer"></script>
         <script type="module" src="/js/intersections.mjs"></script>

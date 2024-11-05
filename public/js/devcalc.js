@@ -1,8 +1,12 @@
 import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.169.0/three.module.min.js';
 import { doIntersect, Point } from '/js/intersections.mjs';
 
-const zoningParams = {
-    maximumBuildingHeight: 27, // metres
+const params = {
+    zoning: {
+        maximumBuildingHeight: 27, // metres
+    },
+    suburb: "Wingatui",
+    initially_selected_property: 72,
 }
 
 async function f() {
@@ -17,7 +21,7 @@ async function f() {
     var data = await promise
     var multi_shapes = await data.json()
 
-    var selected_shape = 16;
+    var selected_shape = params.initially_selected_property;
 
     var rendernewscene = () => {}
 
@@ -109,6 +113,17 @@ async function f() {
     }
 
     render_detail()
+
+    function renderDescription() {
+        const addressText = document.getElementById('address');
+        var text = multi_shapes[selected_shape].address
+        if (text === "") {
+            text = "Unknown Address"
+        }
+        addressText.innerText = text
+    }
+
+    renderDescription()
     
     const corner_1 = [170.37331306790603, -45.86717048147928]
     const corner_2 = [170.40074611871748, -45.886132291960315]
@@ -124,15 +139,6 @@ async function f() {
         return inverted
     }
 
-    const canvas_to_latitude = (point) => {
-        const inverted = [point[0], canvas.height - point[1]]
-        const normalised = [inverted[0] / canvas.width, inverted[1] / canvas.width]
-        const stretched = [normalised[0] * x_factor, normalised[1] * y_factor]
-        const translated = [stretched[0] + corner_1[0], stretched[1] + corner_2[1]]
-        return translated
-    }
-
-    console.log(JSON.parse(JSON.stringify(multi_shapes)))
     var multi_shapes = multi_shapes.map(multi_shape => {
         return { 
             address: multi_shape.address,
@@ -256,6 +262,7 @@ async function f() {
                 selected_shape = i
                 drawSelected()
                 rendernewscene()
+                renderDescription()
                 return
             }
         }
