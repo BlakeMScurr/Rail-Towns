@@ -51,18 +51,17 @@ async function f() {
 
             const positivePath = rawPath.map((point) => [point[0] - lowest_x, point[1] - lowest_y])
 
-            var highest_x = 0;
-            var highest_y = 0;
+            var highest_value = 0;
             positivePath.forEach(point => {
-                if (point[0] > highest_x) {
-                    highest_x = point[0];
+                if (point[0] > highest_value) {
+                    highest_value = point[0];
                 }
-                if (point[1] > highest_y) {
-                    highest_y = point[1];
+                if (point[1] > highest_value) {
+                    highest_value = point[1];
                 }
             })
             
-            const normalisedPath = positivePath.map((point) => [point[0]/highest_x, point[1]/highest_y])
+            const normalisedPath = positivePath.map((point) => [point[0]/highest_value, point[1]/highest_value])
             const path = normalisedPath.map((point) => [point[0]-0.5, point[1]-0.5])
 
             const depth = 0.5;
