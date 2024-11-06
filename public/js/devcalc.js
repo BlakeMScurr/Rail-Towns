@@ -14,14 +14,45 @@ async function f() {
     const canvas = document.getElementById('overviewCanvas');
     const ctx = canvas.getContext('2d');
 
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
-    
     var promise = await fetch("/assets/boundaries/wingatui.json")
     var data = await promise
-    var multi_shapes = await data.json()
+    var raw_json_data = await data.json()
 
     var selected_shape = params.initially_selected_property;
+
+    const corner_1 = [170.37331306790603, -45.86717048147928]
+    const corner_2 = [170.40074611871748, -45.886132291960315]
+
+    const x_factor = Math.abs(corner_1[0] - corner_2[0])
+    const y_factor = Math.abs(corner_1[1] - corner_2[1])
+
+    function resize_shapes(json) {
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+
+        const latitude_to_canvas = (point) => {
+            const translated = [point[0] - corner_1[0], point[1] - corner_2[1]]
+            const normalised = [translated[0] / x_factor, translated[1] / y_factor]
+            const stretched = [normalised[0] * canvas.width, normalised[1] * canvas.width]
+            const inverted = [stretched[0], canvas.height - stretched[1]]
+            return inverted
+        }
+
+        return json.map(multi_shape => {
+            return { 
+                address: multi_shape.address,
+                boundary: multi_shape["boundary"].map(nest => {
+                    return nest.map(shape => {
+                        return shape.map(point => {
+                            return latitude_to_canvas(point)
+                        })
+                    })
+                })
+            }
+        })
+    }
+
+    var multi_shapes = resize_shapes(raw_json_data)
 
     var rendernewscene = () => {}
 
@@ -144,36 +175,6 @@ async function f() {
 
     renderDescription()
     
-    const corner_1 = [170.37331306790603, -45.86717048147928]
-    const corner_2 = [170.40074611871748, -45.886132291960315]
-
-    const x_factor = Math.abs(corner_1[0] - corner_2[0])
-    const y_factor = Math.abs(corner_1[1] - corner_2[1])
-
-    const latitude_to_canvas = (point) => {
-        const translated = [point[0] - corner_1[0], point[1] - corner_2[1]]
-        const normalised = [translated[0] / x_factor, translated[1] / y_factor]
-        const stretched = [normalised[0] * canvas.width, normalised[1] * canvas.width]
-        const inverted = [stretched[0], canvas.height - stretched[1]]
-        return inverted
-    }
-
-    var multi_shapes = multi_shapes.map(multi_shape => {
-        return { 
-            address: multi_shape.address,
-            boundary: multi_shape["boundary"].map(nest => {
-                return nest.map(shape => {
-                    return shape.map(point => {
-                        return latitude_to_canvas(point)
-                    })
-                })
-            })
-        }
-    })
-
-    ctx.strokeStyle = 'rgb(0, 150, 255)';
-    ctx.lineWidth = 0.5;
-
     const outline_multishape = (multi_shape) => {
         multi_shape.forEach(shape => {
             make_shape(shape)
@@ -208,6 +209,8 @@ async function f() {
     }
 
 
+    ctx.strokeStyle = 'rgb(0, 150, 255)';
+    ctx.lineWidth = 0.5;
     multi_shapes.forEach(multi_shape => {
         outline_multishape(multi_shape.boundary)
     })
@@ -312,6 +315,17 @@ async function f() {
 
     canvas.addEventListener('mouseleave', (_) => {
         drawHighlighting(-1)
+    })
+
+    window.addEventListener('resize', () => {
+        multi_shapes = resize_shapes(raw_json_data)
+        ctx.strokeStyle = 'rgb(0, 150, 255)';
+        ctx.lineWidth = 0.5;
+        multi_shapes.forEach(multi_shape => {
+            outline_multishape(multi_shape.boundary)
+        })
+    
+        drawSelected()
     })
 
     // TODO: zooming and panning
