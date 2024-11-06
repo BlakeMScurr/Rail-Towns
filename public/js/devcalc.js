@@ -278,6 +278,7 @@ async function f() {
                 ctx.fillStyle = "rgba(0, 0, 0, 1)"
                 fill_multishape(multi_shapes[selected_shape].boundary)
                 ctx.globalCompositeOperation = "source-over";
+                outline_multishape(multi_shapes[selected_shape].boundary)
                 selected_shape = i
                 drawSelected()
                 rendernewscene()
