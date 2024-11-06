@@ -37,62 +37,80 @@ async function f() {
         detailCanvas.appendChild( renderer.domElement );
 
         const create_multishape = (multishape) => {
-            const rawPath = multishape[0][0] // TODO: all parts, and why is this doulby nested?
             var lowest_x = Infinity;
             var lowest_y = Infinity;
-            rawPath.forEach(point => {
-                if (point[0] < lowest_x) {
-                    lowest_x = point[0]
-                }
-                if (point[1] < lowest_y) {
-                    lowest_y = point[1]
-                }
-            })
 
-            const positivePath = rawPath.map((point) => [point[0] - lowest_x, point[1] - lowest_y])
+            multishape.forEach((shape) => {
+                shape[0].forEach(point => { // TODO: why does this extra nesting seem to only be relevant here?
+                    if (point[0] < lowest_x) {
+                        lowest_x = point[0]
+                    }
+                    if (point[1] < lowest_y) {
+                        lowest_y = point[1]
+                    }
+                })
+            })
 
             var highest_value = 0;
-            positivePath.forEach(point => {
-                if (point[0] > highest_value) {
-                    highest_value = point[0];
-                }
-                if (point[1] > highest_value) {
-                    highest_value = point[1];
-                }
+            var paths = multishape.map((shape) => {
+                const rawPath = shape[0]
+                const positivePath = rawPath.map((point) => [point[0] - lowest_x, point[1] - lowest_y])
+                
+                positivePath.forEach(point => {
+                    if (point[0] > highest_value) {
+                        highest_value = point[0];
+                    }
+                    if (point[1] > highest_value) {
+                        highest_value = point[1];
+                    }
+                })
+                return positivePath;
+                
             })
-            
-            const normalisedPath = positivePath.map((point) => [point[0]/highest_value, point[1]/highest_value])
-            const path = normalisedPath.map((point) => [point[0]-0.5, point[1]-0.5])
+
+            paths = paths.map((positivePath) => {
+                const normalisedPath = positivePath.map((point) => [point[0]/highest_value, point[1]/highest_value])
+                return normalisedPath.map((point) => [point[0]-0.5, point[1]-0.5])
+            })
+
 
             const depth = 0.5;
 
-            const shape = new THREE.Shape();
-            shape.moveTo(path[path.length-1][0], path[path.length-1][1]);
-            path.forEach((point) => {
-                shape.lineTo(point[0], point[1] );
+            const new_shapes = []
+
+            paths.forEach(path => {
+
+                const shape = new THREE.Shape();
+                shape.moveTo(path[path.length-1][0], path[path.length-1][1]);
+                path.forEach((point) => {
+                    shape.lineTo(point[0], point[1] );
+                })
+    
+                const extrudeSettings = {
+                    steps: 1,
+                    depth: depth,
+                    bevelEnabled: false,
+                };
+    
+                const geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+                const solidMaterial = new THREE.MeshBasicMaterial( { color: "rgba(255, 0, 0, 0.5)" } );
+                const wireMaterial = new THREE.MeshBasicMaterial( { color: 0x00ff00, wireframe: true } );
+                new_shapes.push([new THREE.Mesh( geometry, solidMaterial ), new THREE.Mesh( geometry, wireMaterial )]);
             })
-
-            const extrudeSettings = {
-                steps: 1,
-                depth: depth,
-                bevelEnabled: false,
-            };
-
-            const geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-            const solidMaterial = new THREE.MeshBasicMaterial( { color: "rgba(255, 0, 0, 0.5)" } );
-            const wireMaterial = new THREE.MeshBasicMaterial( { color: 0x00ff00, wireframe: true } );
-            return [new THREE.Mesh( geometry, solidMaterial ), new THREE.Mesh( geometry, wireMaterial )];
+            return new_shapes;
         }
 
-        var shape;
+        var shapes = [];
         rendernewscene = () => {
-            if (shape) {
+            shapes.forEach(shape => {
                 scene.remove(shape[0])
                 scene.remove(shape[1])
-            }
-            shape = create_multishape(multi_shapes[selected_shape].boundary)
-            scene.add(shape[0])
-            scene.add(shape[1])
+            })
+            shapes = create_multishape(multi_shapes[selected_shape].boundary)
+            shapes.forEach(shape => {
+                scene.add(shape[0])
+                scene.add(shape[1])
+            })
         }
 
         rendernewscene()
@@ -104,8 +122,10 @@ async function f() {
         camera.rotation.x += Math.PI/4
 
         function animate() {
-            shape[0].rotation.z += 0.01;
-            shape[1].rotation.z += 0.01;
+            shapes.forEach(shape => {
+                shape[0].rotation.z += 0.01;
+                shape[1].rotation.z += 0.01;
+            })
             renderer.render( scene, camera );
         }
         renderer.setAnimationLoop( animate );
