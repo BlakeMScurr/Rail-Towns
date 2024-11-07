@@ -65,7 +65,7 @@ async function f() {
 
         const renderer = new THREE.WebGLRenderer();
         renderer.setSize( overviewCanvas.width, overviewCanvas.height );
-        detailCanvas.appendChild( renderer.domElement );
+        detailCanvas.replaceWith( renderer.domElement );
 
         const create_multishape = (multishape) => {
             var lowest_x = Infinity;
