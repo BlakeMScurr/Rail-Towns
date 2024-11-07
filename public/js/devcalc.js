@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.169.0/three.module.min.js';
 import { doIntersect, Point } from '/js/intersections.mjs';
+import { haversineDistance } from '/js/haversine.mjs'
 
 const params = {
     zoning: {
@@ -67,7 +68,7 @@ async function f() {
         renderer.setSize( overviewCanvas.width, overviewCanvas.height );
         detailCanvas.replaceWith( renderer.domElement );
 
-        const create_multishape = (multishape) => {
+        const renderBuildableVolume = (multishape) => {
             var lowest_x = Infinity;
             var lowest_y = Infinity;
 
@@ -82,17 +83,17 @@ async function f() {
                 })
             })
 
-            var highest_value = 0;
+            var deg_per_su = 0;
             var paths = multishape.map((shape) => {
                 const rawPath = shape[0]
                 const positivePath = rawPath.map((point) => [point[0] - lowest_x, point[1] - lowest_y])
                 
                 positivePath.forEach(point => {
-                    if (point[0] > highest_value) {
-                        highest_value = point[0];
+                    if (point[0] > deg_per_su) {
+                        deg_per_su = point[0];
                     }
-                    if (point[1] > highest_value) {
-                        highest_value = point[1];
+                    if (point[1] > deg_per_su) {
+                        deg_per_su = point[1];
                     }
                 })
                 return positivePath;
@@ -100,12 +101,20 @@ async function f() {
             })
 
             paths = paths.map((positivePath) => {
-                const normalisedPath = positivePath.map((point) => [point[0]/highest_value, point[1]/highest_value])
+                const normalisedPath = positivePath.map((point) => [point[0]/deg_per_su, point[1]/deg_per_su])
                 return normalisedPath.map((point) => [point[0]-0.5, point[1]-0.5])
             })
 
-
-            const depth = 0.5;
+            // Calculate heights
+            // we want to convert metres to screen units. So we want s = metres * su/m = m * su/deg * deg/m
+            const distanceInMetres = haversineDistance(
+                { latitude: corner_1[0], longitude: corner_1[1] },
+                { latitude: corner_1[0], longitude: corner_2[1] },
+            );
+            const distanceInDegrees = Math.abs(corner_1[1] - corner_2[1]);
+            const deg_per_m = distanceInDegrees/distanceInMetres;
+            const su_per_m = deg_per_m / deg_per_su;
+            const buildable_height = params.zoning.maximumBuildingHeight * su_per_m;
 
             const new_shapes = []
 
@@ -119,43 +128,62 @@ async function f() {
     
                 const extrudeSettings = {
                     steps: 1,
-                    depth: depth,
+                    depth: buildable_height,
                     bevelEnabled: false,
                 };
     
                 const geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-                const solidMaterial = new THREE.MeshBasicMaterial( { color: "rgba(255, 0, 0, 0.5)" } );
-                const wireMaterial = new THREE.MeshBasicMaterial( { color: 0x00ff00, wireframe: true } );
-                new_shapes.push([new THREE.Mesh( geometry, solidMaterial ), new THREE.Mesh( geometry, wireMaterial )]);
+                const solidMaterial = new THREE.MeshLambertMaterial( { color: 0xAA4A44, reflectivity: 1 } );
+                new_shapes.push(new THREE.Mesh(geometry, solidMaterial));
             })
             return new_shapes;
         }
 
         var shapes = [];
         rendernewscene = () => {
+            // remove old property
             shapes.forEach(shape => {
-                scene.remove(shape[0])
-                scene.remove(shape[1])
+                scene.remove(shape)
             })
-            shapes = create_multishape(multi_shapes[selected_shape].boundary)
+
+            // add new property
+            shapes = renderBuildableVolume(raw_json_data[selected_shape].boundary)
             shapes.forEach(shape => {
-                scene.add(shape[0])
-                scene.add(shape[1])
+                scene.add(shape)
             })
         }
+        // create ground
+        const geometry = new THREE.CircleGeometry( 5, 32 ); 
+        const material = new THREE.MeshBasicMaterial( {color: 0x8BBF8C, side: THREE.DoubleSide} );
+        const ground = new THREE.Mesh( geometry, material );
+        scene.add(ground);
+
+        // create suns
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1)
+        directionalLight.position.z = 1
+        directionalLight.position.y = -1
+        scene.add(directionalLight)
+
+        const light2 = new THREE.DirectionalLight(0xffffff, 1)
+        light2.position.z = 1
+        light2.position.y = -1
+        light2.position.x = -1
+
+        const light3 = new THREE.DirectionalLight(0xffffff, 3)
+        light3.position.z = 1
+        scene.add(light3)
 
         rendernewscene()
 
         const camera_distance = 2;
 
-        camera.position.z = camera_distance;
+        camera.position.z = camera_distance/2;
         camera.position.y = -camera_distance;
-        camera.rotation.x += Math.PI/4
+        camera.rotation.x += Math.PI/6*2;
 
         function animate() {
             shapes.forEach(shape => {
-                shape[0].rotation.z += 0.01;
-                shape[1].rotation.z += 0.01;
+                shape.rotation.z -= 0.01
             })
             renderer.render( scene, camera );
         }
