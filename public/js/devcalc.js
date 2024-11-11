@@ -303,7 +303,8 @@ async function f() {
         const rect = canvas.getBoundingClientRect();
         const mouseX = (event.clientX - rect.left);
         const mouseY = (event.clientY - rect.top)
-        const point = [mouseX, mouseY];
+        const shifted = ctx.getTransform().inverse().transformPoint({ x: mouseX, y: mouseY })
+        var point = [shifted.x, shifted.y];
 
         for (let i = 0; i < multi_shapes.length; i++) {
             if (multi_shape_contains_point(multi_shapes[i].boundary, point)) {
@@ -325,7 +326,8 @@ async function f() {
         const rect = canvas.getBoundingClientRect();
         const mouseX = (event.clientX - rect.left);
         const mouseY = (event.clientY - rect.top)
-        const point = [mouseX, mouseY];
+        const shifted = ctx.getTransform().inverse().transformPoint({ x: mouseX, y: mouseY })
+        var point = [shifted.x, shifted.y];
 
         if (hovered_multishape != -1 && multi_shape_contains_point(multi_shapes[hovered_multishape].boundary, point)) {
             drawHighlighting(hovered_multishape)
