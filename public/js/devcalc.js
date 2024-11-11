@@ -235,7 +235,6 @@ async function f() {
         outline_multishape(multi_shapes[selected_shape].boundary)
     }
 
-
     const drawAllBoundaries = () => {
         ctx.strokeStyle = 'rgb(0, 150, 255)';
         ctx.lineWidth = 0.5;
@@ -243,36 +242,33 @@ async function f() {
             outline_multishape(multi_shape.boundary)
         })
     }
-    drawAllBoundaries()
-
-    drawSelected()
-
+    
+    const myImage = new Image(canvas.width, canvas.height);
+    myImage.src = "/assets/wingatui.webp";
+    myImage.onload = () => {
+        ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
+        drawAllBoundaries()
+        drawSelected()
+    }
     
     var hovered_multishape = -1;
     const drawHighlighting = (new_hovered) => {
-        var is_new = false
+        var is_new = false;
         if (hovered_multishape != new_hovered) {
-            if (hovered_multishape != -1) {
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.fillStyle = "rgba(0, 0, 0, 1)"
-                fill_multishape(multi_shapes[hovered_multishape].boundary)
-                ctx.globalCompositeOperation = "source-over";
-                if (hovered_multishape != selected_shape) {
-                    outline_multishape(multi_shapes[hovered_multishape].boundary)
-                } else {
-                    drawSelected()
-                }
-            }
-
-            hovered_multishape = new_hovered
-            is_new = true
+            // Completely redraw everything
+            ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
+            drawAllBoundaries();
+            drawSelected();
+            
+            hovered_multishape = new_hovered;
+            is_new = true;
         }
-
+    
         if (hovered_multishape != -1) {
             if (is_new) {
                 document.body.style.cursor = 'pointer';
-                ctx.fillStyle = "rgb(0, 150, 255, 0.4)"
-                fill_multishape(multi_shapes[hovered_multishape].boundary)
+                ctx.fillStyle = "rgb(0, 150, 255, 0.4)";
+                fill_multishape(multi_shapes[hovered_multishape].boundary);
             }
         } else {
             document.body.style.cursor = 'default';
@@ -308,9 +304,9 @@ async function f() {
 
         for (let i = 0; i < multi_shapes.length; i++) {
             if (multi_shape_contains_point(multi_shapes[i].boundary, point)) {
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.fillStyle = "rgba(0, 0, 0, 1)"
-                fill_multishape(multi_shapes[selected_shape].boundary)
+                ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
+                ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
+                drawAllBoundaries();
                 ctx.globalCompositeOperation = "source-over";
                 outline_multishape(multi_shapes[selected_shape].boundary)
                 selected_shape = i
@@ -400,6 +396,7 @@ async function f() {
         // Redraw
         ctx.clearRect(0, 0,canvas.width, canvas.height)
 
+        ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
         drawAllBoundaries()
         drawSelected()
     })

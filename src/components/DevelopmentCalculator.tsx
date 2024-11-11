@@ -1,12 +1,9 @@
 export interface Props {}
-import * as fs from 'fs';
   
 export default function DevelopmentCalculator({}: Props) {
     // TODO: what's overriding these important attributes?
     const css = `
     canvas {
-        background: url(/assets/wingatui.webp);
-        background-size: contain;
         aspect-ratio: 1;
         width: 50% !important;
         height: 50% !important;
