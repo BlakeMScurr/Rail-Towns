@@ -359,21 +359,47 @@ async function f() {
     })
 
     // Zooming on a computer (trackpads create wheel events)
+    // TODO: ensure zooming and resizing work together
     var current_zoom = 1;
     canvas.addEventListener('wheel', (e) => {
         e.preventDefault() // don't zoom the page
 
         const factor = Math.pow(0.99, e.deltaY)
+
         if (current_zoom * factor > 1) { // Don't zoom out further than the specified suburb
-            ctx.scale(factor, factor)
+            const rect = canvas.getBoundingClientRect();
+            const zoomCentre = [e.clientX - rect.left, e.clientY - rect.top];
             current_zoom *= factor
+
+            // Moves the origin to the cursor, scales, then moves back to keep the cursor's point static
+            ctx.translate(zoomCentre[0], zoomCentre[1])
+            ctx.scale(factor, factor)
+            ctx.translate(-zoomCentre[0], -zoomCentre[1])
+
+            // make sure we don't exceed the current suburb
+            const t = ctx.getTransform()
+            if (t.e > 0) {
+                t.e = 0;
+            }
+            if (t.f > 0) {
+                t.f = 0;
+            }
+            const xMin = -1 * canvas.width * t.a + canvas.width; // full width minus a screen TODO: explain better
+            const yMin = -1 * canvas.height * t.a + canvas.height
+            if (t.e < xMin) {
+                t.e = xMin;
+            }
+            if (t.f < yMin) {
+                t.f = yMin;
+            }
+            ctx.setTransform(t)
         }
 
-        ctx.clearRect(0,0,canvas.width, canvas.height)
+        // Redraw
+        ctx.clearRect(0, 0,canvas.width, canvas.height)
 
         drawAllBoundaries()
         drawSelected()
-
     })
 }
 
