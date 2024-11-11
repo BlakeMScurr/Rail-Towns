@@ -358,24 +358,23 @@ async function f() {
 
     // Zooming on a computer (trackpads create wheel events)
     // TODO: ensure zooming and resizing work together
-    var current_zoom = 1;
     canvas.addEventListener('wheel', (e) => {
         e.preventDefault() // don't zoom the page
 
         const factor = Math.pow(0.99, e.deltaY)
 
-        if (current_zoom * factor > 1) { // Don't zoom out further than the specified suburb
+        const initialT = ctx.getTransform()
+        if (initialT.a * factor > 1) { // Don't zoom out further than the specified suburb
             const rect = canvas.getBoundingClientRect();
-            const zoomCentre = [e.clientX - rect.left, e.clientY - rect.top];
-            current_zoom *= factor
+            const zoomCentre = initialT.inverse().transformPoint({x: e.clientX - rect.left, y: e.clientY - rect.top});
 
             // Moves the origin to the cursor, scales, then moves back to keep the cursor's point static
-            ctx.translate(zoomCentre[0], zoomCentre[1])
+            ctx.translate(zoomCentre.x, zoomCentre.y)
             ctx.scale(factor, factor)
-            ctx.translate(-zoomCentre[0], -zoomCentre[1])
+            ctx.translate(-zoomCentre.x, -zoomCentre.y)
 
-            // make sure we don't exceed the current suburb
             const t = ctx.getTransform()
+            // make sure we don't exceed the current suburb
             if (t.e > 0) {
                 t.e = 0;
             }
