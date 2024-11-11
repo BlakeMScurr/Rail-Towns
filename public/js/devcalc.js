@@ -252,8 +252,7 @@ async function f() {
     }
     
     var hovered_multishape = -1;
-    const drawHighlighting = (new_hovered) => {
-        var is_new = false;
+    const drawHighlighting = (new_hovered, is_new = false) => {
         if (hovered_multishape != new_hovered) {
             // Completely redraw everything
             ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
@@ -295,27 +294,31 @@ async function f() {
         }
     }
 
+    var endingPan = false;
     canvas.addEventListener('click', (event) => {
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = (event.clientX - rect.left);
-        const mouseY = (event.clientY - rect.top)
-        const shifted = ctx.getTransform().inverse().transformPoint({ x: mouseX, y: mouseY })
-        var point = [shifted.x, shifted.y];
+        if (!endingPan) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = (event.clientX - rect.left);
+            const mouseY = (event.clientY - rect.top)
+            const shifted = ctx.getTransform().inverse().transformPoint({ x: mouseX, y: mouseY })
+            var point = [shifted.x, shifted.y];
 
-        for (let i = 0; i < multi_shapes.length; i++) {
-            if (multi_shape_contains_point(multi_shapes[i].boundary, point)) {
-                ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
-                ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
-                drawAllBoundaries();
-                ctx.globalCompositeOperation = "source-over";
-                outline_multishape(multi_shapes[selected_shape].boundary)
-                selected_shape = i
-                drawSelected()
-                rendernewscene()
-                renderDescription()
-                return
+            for (let i = 0; i < multi_shapes.length; i++) {
+                if (multi_shape_contains_point(multi_shapes[i].boundary, point)) {
+                    ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
+                    drawAllBoundaries();
+                    ctx.globalCompositeOperation = "source-over";
+                    outline_multishape(multi_shapes[selected_shape].boundary)
+                    selected_shape = i
+                    drawSelected()
+                    rendernewscene()
+                    renderDescription()
+                    return
+                }
             }
         }
+        endingPan = false
     }) 
 
     canvas.addEventListener('mousemove', (event) => {
@@ -397,8 +400,46 @@ async function f() {
 
         ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
         drawAllBoundaries()
+        drawHighlighting(hovered_multishape, true)
         drawSelected()
     })
+
+    // panning
+    var mouseIsDown = false;
+    canvas.addEventListener('mousedown', (_) => {
+        mouseIsDown = true;
+    })
+    window.addEventListener('mouseup', (_) => {
+        mouseIsDown = false;
+    })
+    window.addEventListener('mousemove', (e) => {
+        if (mouseIsDown) {
+            endingPan = true;
+            const t = ctx.getTransform();
+            var dx = e.movementX / t.a;
+            var dy = e.movementY / t.a;
+            if (t.e + dx > 0) {
+                dx = -t.e / t.a
+            }
+            if (t.f + dy > 0) {
+                dy = -t.f / t.a;
+            }
+            const xMin = -1 * canvas.width * t.a + canvas.width; // full width minus a screen TODO: explain better
+            const yMin = -1 * canvas.height * t.a + canvas.height
+            if (t.e + dx < xMin) {
+                dx = (xMin - t.e) / t.a;
+            }
+            if (t.f + dy < yMin) {
+                dy = (yMin - t.f) / t.a;
+            }
+            ctx.translate(dx, dy)
+            ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
+            drawAllBoundaries()
+            drawHighlighting(hovered_multishape, true)
+            drawSelected()
+        }
+    })
+
 }
 
 f()
