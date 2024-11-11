@@ -119,7 +119,6 @@ async function f() {
             const new_shapes = []
 
             paths.forEach(path => {
-
                 const shape = new THREE.Shape();
                 shape.moveTo(path[path.length-1][0], path[path.length-1][1]);
                 path.forEach((point) => {
@@ -237,11 +236,14 @@ async function f() {
     }
 
 
-    ctx.strokeStyle = 'rgb(0, 150, 255)';
-    ctx.lineWidth = 0.5;
-    multi_shapes.forEach(multi_shape => {
-        outline_multishape(multi_shape.boundary)
-    })
+    const drawAllBoundaries = () => {
+        ctx.strokeStyle = 'rgb(0, 150, 255)';
+        ctx.lineWidth = 0.5;
+        multi_shapes.forEach(multi_shape => {
+            outline_multishape(multi_shape.boundary)
+        })
+    }
+    drawAllBoundaries()
 
     drawSelected()
 
@@ -356,8 +358,23 @@ async function f() {
         drawSelected()
     })
 
-    // TODO: zooming and panning
+    // Zooming on a computer (trackpads create wheel events)
+    var current_zoom = 1;
+    canvas.addEventListener('wheel', (e) => {
+        e.preventDefault() // don't zoom the page
 
+        const factor = Math.pow(0.99, e.deltaY)
+        if (current_zoom * factor > 1) { // Don't zoom out further than the specified suburb
+            ctx.scale(factor, factor)
+            current_zoom *= factor
+        }
+
+        ctx.clearRect(0,0,canvas.width, canvas.height)
+
+        drawAllBoundaries()
+        drawSelected()
+
+    })
 }
 
 f()
