@@ -21,8 +21,10 @@ async function f() {
 
     var selected_shape = params.initially_selected_property;
 
-    const corner_1 = [170.37331306790603, -45.86717048147928]
-    const corner_2 = [170.40074611871748, -45.886132291960315]
+    // const corner_1 = [170.37331306790603, -45.86717048147928]
+    // const corner_2 = [170.40074611871748, -45.886132291960315]
+    const corner_1 = [170.37331832405283, -45.867143715592604]
+    const corner_2 = [170.40063611871748, -45.886102291960315]
 
     const x_factor = Math.abs(corner_1[0] - corner_2[0])
     const y_factor = Math.abs(corner_1[1] - corner_2[1])
