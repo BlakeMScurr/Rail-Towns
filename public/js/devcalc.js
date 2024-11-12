@@ -9,18 +9,19 @@ const params = {
     suburb: "Wingatui",
     initially_selected_property: 72,
     aesthetic: {
-        lineWidth: 2,
+        lineWidth: 1,
         maxZoom: 20,
         colours: {
             mapView: {
-                boundaries: "rgb(0, 150, 255)",
+                boundaries: "#0096FF",
                 hovered: "rgb(0, 150, 255, 0.4)",
-                selected: "#AA4A44",
+                selected: "rgba(189, 88, 38, 0.6)",
             },
             volumeView: {
-                earth: 0x8BBF8C,
-                selected: 0xAA4A44,
-                vetoing: "",
+                earth: 0x568a33,
+                selected: 0xbd5826,
+                vetoing: 0xAA4A44,
+                sky: 0x12a2fc,
                 consenting: "",
             },
         }
@@ -170,11 +171,19 @@ async function f() {
                 scene.add(shape)
             })
         }
-        // create ground
-        const geometry = new THREE.CircleGeometry( 5, 32 ); 
+        // create earth
+        const geometry = new THREE.PlaneGeometry( 50, 50 ); 
         const material = new THREE.MeshBasicMaterial( {color: params.aesthetic.colours.volumeView.earth, side: THREE.DoubleSide} );
-        const ground = new THREE.Mesh( geometry, material );
-        scene.add(ground);
+        const earth = new THREE.Mesh( geometry, material );
+        scene.add(earth);
+
+        // create sky
+        const skygeo = new THREE.PlaneGeometry( 50, 50 ); 
+        const skymaterial = new THREE.MeshBasicMaterial( {color: params.aesthetic.colours.volumeView.sky, side: THREE.DoubleSide} );
+        const sky = new THREE.Mesh( skygeo, skymaterial );
+        sky.rotation.x += 45;
+        sky.position.y += 15;
+        scene.add(sky);
 
         // create suns
         const directionalLight = new THREE.DirectionalLight(0xffffff, 1)
@@ -376,7 +385,7 @@ async function f() {
         const initialT = ctx.getTransform()
         if (initialT.a * factor > 1 && initialT.a * factor < params.aesthetic.maxZoom) { // Don't zoom out further than the specified suburb
             const zoomCentre = initialT.inverse().transformPoint(centre);
-            ctx.lineWidth = params.aesthetic.lineWidth / initialT.a;
+            ctx.lineWidth = params.aesthetic.lineWidth / (Math.pow(initialT.a, 1/2)); // keeps line width identical regardless of zoom level
 
             // Moves the origin to the cursor, scales, then moves back to keep the cursor's point static
             ctx.translate(zoomCentre.x, zoomCentre.y)
