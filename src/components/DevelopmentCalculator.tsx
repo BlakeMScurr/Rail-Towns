@@ -3,10 +3,22 @@ export interface Props {}
 export default function DevelopmentCalculator({}: Props) {
     // TODO: what's overriding these important attributes?
     const css = `
+    @media (max-width: 800px) {
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+    }
+
+    @media (min-width: 800px) {
+        canvas {
+            width: 50% !important;
+            height: 50% !important;
+        }
+    }
+
     canvas {
         aspect-ratio: 1;
-        width: 50% !important;
-        height: 50% !important;
         display: inline-block !important;
     }
 

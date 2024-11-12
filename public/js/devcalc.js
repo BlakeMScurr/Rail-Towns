@@ -350,26 +350,18 @@ async function f() {
 
     window.addEventListener('resize', () => {
         multi_shapes = resize_shapes(raw_json_data)
-        ctx.strokeStyle = 'rgb(0, 150, 255)';
-        ctx.lineWidth = 0.5;
-        multi_shapes.forEach(multi_shape => {
-            outline_multishape(multi_shape.boundary)
-        })
-    
+        ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
+        drawAllBoundaries()
+        drawHighlighting(hovered_multishape, true)
         drawSelected()
     })
 
     // Zooming on a computer (trackpads create wheel events)
     // TODO: ensure zooming and resizing work together
-    canvas.addEventListener('wheel', (e) => {
-        e.preventDefault() // don't zoom the page
-
-        const factor = Math.pow(0.99, e.deltaY)
-
+    const zoomHandler = (factor, centre) => {
         const initialT = ctx.getTransform()
         if (initialT.a * factor > 1) { // Don't zoom out further than the specified suburb
-            const rect = canvas.getBoundingClientRect();
-            const zoomCentre = initialT.inverse().transformPoint({x: e.clientX - rect.left, y: e.clientY - rect.top});
+            const zoomCentre = initialT.inverse().transformPoint(centre);
 
             // Moves the origin to the cursor, scales, then moves back to keep the cursor's point static
             ctx.translate(zoomCentre.x, zoomCentre.y)
@@ -402,6 +394,89 @@ async function f() {
         drawAllBoundaries()
         drawHighlighting(hovered_multishape, true)
         drawSelected()
+    }
+
+    const panHandler = (dx, dy) => {
+        const t = ctx.getTransform();
+        dx = dx / t.a;
+        dy = dy / t.a;
+        if (t.e + dx > 0) {
+            dx = -t.e / t.a
+        }
+        if (t.f + dy > 0) {
+            dy = -t.f / t.a;
+        }
+        const xMin = -1 * canvas.width * t.a + canvas.width; // full width minus a screen TODO: explain better
+        const yMin = -1 * canvas.height * t.a + canvas.height
+        if (t.e + dx < xMin) {
+            dx = (xMin - t.e) / t.a;
+        }
+        if (t.f + dy < yMin) {
+            dy = (yMin - t.f) / t.a;
+        }
+        ctx.translate(dx, dy)
+        ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
+        drawAllBoundaries()
+        drawHighlighting(hovered_multishape, true)
+        drawSelected()
+    }
+
+    // Zooming with a mouse (including trackpad)
+    canvas.addEventListener('wheel', (e) => {
+        console.log("preventing default")
+        e.preventDefault() // don't zoom the page
+        const factor = Math.pow(0.99, e.deltaY)
+        const rect = canvas.getBoundingClientRect();
+        zoomHandler(factor, {x: e.clientX - rect.left, y: e.clientY - rect.top})
+    })
+
+    // Zooming on touch devices
+    // Calculate distance between two fingers
+    const distance = (event) => {
+        return Math.hypot(event.touches[0].pageX - event.touches[1].pageX, event.touches[0].pageY - event.touches[1].pageY);
+    };
+
+    var prevX = 0;
+    var prevY = 0;
+    var lastDistance = 0;
+    canvas.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+            e.preventDefault()
+            lastDistance = distance(e)
+        } else if (e.touches.length === 1) {
+            prevX = e.touches[0].clientX
+            prevY = e.touches[0].clientY
+        }
+    })
+
+    var isZooming = false;
+    canvas.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 2) {
+            isZooming = true
+            e.preventDefault()
+            const newDistance = distance(e)
+            const rect = canvas.getBoundingClientRect();
+            const centre = {
+                x: (e.touches[0].clientX + e.touches[1].clientX)/2 - rect.left,
+                y: (e.touches[0].clientY + e.touches[1].clientY)/2 - rect.top,
+            }
+            zoomHandler(newDistance/lastDistance, centre)
+            lastDistance = newDistance
+        } else if (e.touches.length === 1 && !isZooming) {
+            e.preventDefault()
+            const newX = e.touches[0].clientX
+            const newY = e.touches[0].clientY
+            panHandler(newX - prevX, newY - prevY)
+            prevX = newX
+            prevY = newY
+            document.getElementById('address').innerText = JSON.stringify(e.touches[0])
+        }
+    })
+
+    canvas.addEventListener('touchend', (e) => {
+        if (e.touches.length === 0) {
+            isZooming = false;
+        }
     })
 
     // panning
@@ -414,32 +489,10 @@ async function f() {
     })
     window.addEventListener('mousemove', (e) => {
         if (mouseIsDown) {
-            endingPan = true;
-            const t = ctx.getTransform();
-            var dx = e.movementX / t.a;
-            var dy = e.movementY / t.a;
-            if (t.e + dx > 0) {
-                dx = -t.e / t.a
-            }
-            if (t.f + dy > 0) {
-                dy = -t.f / t.a;
-            }
-            const xMin = -1 * canvas.width * t.a + canvas.width; // full width minus a screen TODO: explain better
-            const yMin = -1 * canvas.height * t.a + canvas.height
-            if (t.e + dx < xMin) {
-                dx = (xMin - t.e) / t.a;
-            }
-            if (t.f + dy < yMin) {
-                dy = (yMin - t.f) / t.a;
-            }
-            ctx.translate(dx, dy)
-            ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
-            drawAllBoundaries()
-            drawHighlighting(hovered_multishape, true)
-            drawSelected()
+            endingPan = true
+            panHandler(e.movementX, e.movementY)
         }
-    })
-
+    });
 }
 
 f()
