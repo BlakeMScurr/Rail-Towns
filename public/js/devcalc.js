@@ -294,31 +294,27 @@ async function f() {
         }
     }
 
-    var endingPan = false;
     canvas.addEventListener('click', (event) => {
-        if (!endingPan) {
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = (event.clientX - rect.left);
-            const mouseY = (event.clientY - rect.top)
-            const shifted = ctx.getTransform().inverse().transformPoint({ x: mouseX, y: mouseY })
-            var point = [shifted.x, shifted.y];
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = (event.clientX - rect.left);
+        const mouseY = (event.clientY - rect.top)
+        const shifted = ctx.getTransform().inverse().transformPoint({ x: mouseX, y: mouseY })
+        var point = [shifted.x, shifted.y];
 
-            for (let i = 0; i < multi_shapes.length; i++) {
-                if (multi_shape_contains_point(multi_shapes[i].boundary, point)) {
-                    ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
-                    drawAllBoundaries();
-                    ctx.globalCompositeOperation = "source-over";
-                    outline_multishape(multi_shapes[selected_shape].boundary)
-                    selected_shape = i
-                    drawSelected()
-                    rendernewscene()
-                    renderDescription()
-                    return
-                }
+        for (let i = 0; i < multi_shapes.length; i++) {
+            if (multi_shape_contains_point(multi_shapes[i].boundary, point)) {
+                ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
+                ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
+                drawAllBoundaries();
+                ctx.globalCompositeOperation = "source-over";
+                outline_multishape(multi_shapes[selected_shape].boundary)
+                selected_shape = i
+                drawSelected()
+                rendernewscene()
+                renderDescription()
+                return
             }
         }
-        endingPan = false
     }) 
 
     canvas.addEventListener('mousemove', (event) => {
@@ -489,7 +485,6 @@ async function f() {
     })
     window.addEventListener('mousemove', (e) => {
         if (mouseIsDown) {
-            endingPan = true
             panHandler(e.movementX, e.movementY)
         }
     });
