@@ -8,6 +8,10 @@ const params = {
     },
     suburb: "Wingatui",
     initially_selected_property: 72,
+    aesthetic: {
+        lineWidth: 2,
+        maxZoom: 20,
+    }
 }
 
 async function f() {
@@ -20,9 +24,8 @@ async function f() {
     var raw_json_data = await data.json()
 
     var selected_shape = params.initially_selected_property;
+    ctx.lineWidth = params.aesthetic.lineWidth;
 
-    // const corner_1 = [170.37331306790603, -45.86717048147928]
-    // const corner_2 = [170.40074611871748, -45.886132291960315]
     const corner_1 = [170.37331832405283, -45.867143715592604]
     const corner_2 = [170.40063611871748, -45.886102291960315]
 
@@ -239,7 +242,6 @@ async function f() {
 
     const drawAllBoundaries = () => {
         ctx.strokeStyle = 'rgb(0, 150, 255)';
-        ctx.lineWidth = 0.5;
         multi_shapes.forEach(multi_shape => {
             outline_multishape(multi_shape.boundary)
         })
@@ -358,8 +360,9 @@ async function f() {
     // TODO: ensure zooming and resizing work together
     const zoomHandler = (factor, centre) => {
         const initialT = ctx.getTransform()
-        if (initialT.a * factor > 1) { // Don't zoom out further than the specified suburb
+        if (initialT.a * factor > 1 && initialT.a * factor < params.aesthetic.maxZoom) { // Don't zoom out further than the specified suburb
             const zoomCentre = initialT.inverse().transformPoint(centre);
+            ctx.lineWidth = params.aesthetic.lineWidth / initialT.a;
 
             // Moves the origin to the cursor, scales, then moves back to keep the cursor's point static
             ctx.translate(zoomCentre.x, zoomCentre.y)
@@ -421,7 +424,6 @@ async function f() {
 
     // Zooming with a mouse (including trackpad)
     canvas.addEventListener('wheel', (e) => {
-        console.log("preventing default")
         e.preventDefault() // don't zoom the page
         const factor = Math.pow(0.99, e.deltaY)
         const rect = canvas.getBoundingClientRect();
