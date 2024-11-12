@@ -11,6 +11,19 @@ const params = {
     aesthetic: {
         lineWidth: 2,
         maxZoom: 20,
+        colours: {
+            mapView: {
+                boundaries: "rgb(0, 150, 255)",
+                hovered: "rgb(0, 150, 255, 0.4)",
+                selected: "#AA4A44",
+            },
+            volumeView: {
+                earth: 0x8BBF8C,
+                selected: 0xAA4A44,
+                vetoing: "",
+                consenting: "",
+            },
+        }
     }
 }
 
@@ -137,9 +150,10 @@ async function f() {
                 };
     
                 const geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-                const solidMaterial = new THREE.MeshLambertMaterial( { color: 0xAA4A44, reflectivity: 1 } );
+                const solidMaterial = new THREE.MeshLambertMaterial( { color: params.aesthetic.colours.volumeView.selected, reflectivity: 1 } );
                 new_shapes.push(new THREE.Mesh(geometry, solidMaterial));
             })
+
             return new_shapes;
         }
 
@@ -158,7 +172,7 @@ async function f() {
         }
         // create ground
         const geometry = new THREE.CircleGeometry( 5, 32 ); 
-        const material = new THREE.MeshBasicMaterial( {color: 0x8BBF8C, side: THREE.DoubleSide} );
+        const material = new THREE.MeshBasicMaterial( {color: params.aesthetic.colours.volumeView.earth, side: THREE.DoubleSide} );
         const ground = new THREE.Mesh( geometry, material );
         scene.add(ground);
 
@@ -235,13 +249,13 @@ async function f() {
 
 
     const drawSelected = () => {
-        ctx.fillStyle = "#AA4A44"
+        ctx.fillStyle = params.aesthetic.colours.mapView.selected;
         fill_multishape(multi_shapes[selected_shape].boundary)
         outline_multishape(multi_shapes[selected_shape].boundary)
     }
 
     const drawAllBoundaries = () => {
-        ctx.strokeStyle = 'rgb(0, 150, 255)';
+        ctx.strokeStyle = params.aesthetic.colours.mapView.boundaries;
         multi_shapes.forEach(multi_shape => {
             outline_multishape(multi_shape.boundary)
         })
@@ -270,7 +284,7 @@ async function f() {
         if (hovered_multishape != -1) {
             if (is_new) {
                 document.body.style.cursor = 'pointer';
-                ctx.fillStyle = "rgb(0, 150, 255, 0.4)";
+                ctx.fillStyle = params.aesthetic.colours.mapView.hovered;
                 fill_multishape(multi_shapes[hovered_multishape].boundary);
             }
         } else {
