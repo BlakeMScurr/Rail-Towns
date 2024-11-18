@@ -492,7 +492,6 @@ async function f() {
             panHandler(newX - prevX, newY - prevY)
             prevX = newX
             prevY = newY
-            document.getElementById('address').innerText = JSON.stringify(e.touches[0])
         }
     })
 
