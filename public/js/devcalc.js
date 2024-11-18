@@ -146,7 +146,7 @@ async function f() {
                 })
     
                 const extrudeSettings = {
-                    steps: 6,
+                    steps: 1,
                     depth: buildable_height,
                     bevelEnabled: false,
                 };
@@ -205,9 +205,6 @@ async function f() {
 
         const camera_distance = 2;
 
-        // camera.position.z = 0;
-        // camera.position.y = -camera_distance;
-        // camera.rotation.x += Math.PI/2;
         camera.position.z = camera_distance/2;
         camera.position.y = -camera_distance;
         camera.rotation.x += Math.PI/6*2;
