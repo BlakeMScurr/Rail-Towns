@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.169.0/three.module.min.js';
+import * as CSG from '/js/three-csg.mjs';
 import { doIntersect, Point } from '/js/intersections.mjs';
 import { haversineDistance } from '/js/haversine.mjs'
 
@@ -132,7 +133,7 @@ async function f() {
             );
             const distanceInDegrees = Math.abs(corner_1[1] - corner_2[1]);
             const deg_per_m = distanceInDegrees/distanceInMetres;
-            const su_per_m = deg_per_m / deg_per_su;
+            const su_per_m = deg_per_m / deg_per_su; // (d/m)/(d/su)=(d/m)(su/d)=su/m
             const buildable_height = params.zoning.maximumBuildingHeight * su_per_m;
 
             const new_shapes = []
@@ -145,7 +146,7 @@ async function f() {
                 })
     
                 const extrudeSettings = {
-                    steps: 1,
+                    steps: 6,
                     depth: buildable_height,
                     bevelEnabled: false,
                 };
@@ -204,6 +205,9 @@ async function f() {
 
         const camera_distance = 2;
 
+        // camera.position.z = 0;
+        // camera.position.y = -camera_distance;
+        // camera.rotation.x += Math.PI/2;
         camera.position.z = camera_distance/2;
         camera.position.y = -camera_distance;
         camera.rotation.x += Math.PI/6*2;
