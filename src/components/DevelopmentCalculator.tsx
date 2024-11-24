@@ -36,6 +36,7 @@ export default function DevelopmentCalculator({}: Props) {
         <h3 id="address"></h3>
 
         <script type="module" src="/js/intersections.mjs"></script>
+        <script type="module" src="/js/property.mjs"></script>
         <script type="module" src="/js/haversine.mjs"></script>
         <script type="module" src="/js/devcalc.js"></script>
     </div>

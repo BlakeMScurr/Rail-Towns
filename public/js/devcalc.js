@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.169.0/three.module.min.js';
 import * as CSG from '/js/three-csg.mjs';
-import { doIntersect, Point } from '/js/intersections.mjs';
+import { Property } from '/js/property.mjs';
 import { haversineDistance } from '/js/haversine.mjs'
 
 const params = {
@@ -8,6 +8,10 @@ const params = {
         maximumBuildingHeight: 27, // metres
     },
     suburb: "Wingatui",
+    canvasCorners: {
+        top_left: [170.37331832405283, -45.867143715592604],
+        bottom_right: [170.40063611871748, -45.886102291960315],
+    },
     initially_selected_property: 72,
     aesthetic: {
         lineWidth: 1,
@@ -40,41 +44,20 @@ async function f() {
 
     var selected_shape = params.initially_selected_property;
     ctx.lineWidth = params.aesthetic.lineWidth;
-
-    const corner_1 = [170.37331832405283, -45.867143715592604]
-    const corner_2 = [170.40063611871748, -45.886102291960315]
-
-    const x_factor = Math.abs(corner_1[0] - corner_2[0])
-    const y_factor = Math.abs(corner_1[1] - corner_2[1])
-
-    function resize_shapes(json) {
+    
+    function resize_shapes() {
         canvas.width = canvas.clientWidth;
         canvas.height = canvas.clientHeight;
 
-        const latitude_to_canvas = (point) => {
-            const translated = [point[0] - corner_1[0], point[1] - corner_2[1]]
-            const normalised = [translated[0] / x_factor, translated[1] / y_factor]
-            const stretched = [normalised[0] * canvas.width, normalised[1] * canvas.width]
-            const inverted = [stretched[0], canvas.height - stretched[1]]
-            return inverted
-        }
-
-        return json.map(multi_shape => {
-            return { 
-                address: multi_shape.address,
-                boundary: multi_shape["boundary"].map(nest => {
-                    return nest.map(shape => {
-                        return shape.map(point => {
-                            return latitude_to_canvas(point)
-                        })
-                    })
-                })
-            }
-        })
+        properties.forEach(property => {
+            property.resizeToCanvas(canvas.width, canvas.height);
+        });
     }
-
-    var multi_shapes = resize_shapes(raw_json_data)
-
+    var properties = raw_json_data.map(jsonProperty => {
+        return new Property(jsonProperty.address, jsonProperty.boundary, canvas.width, canvas.height, params.canvasCorners.top_left, params.canvasCorners.bottom_right)
+    })
+    resize_shapes()
+    
     var rendernewscene = () => {}
 
     function render_detail() {
@@ -88,50 +71,16 @@ async function f() {
         renderer.setSize( overviewCanvas.width, overviewCanvas.height );
         detailCanvas.replaceWith( renderer.domElement );
 
-        const renderBuildableVolume = (multishape) => {
-            var lowest_x = Infinity;
-            var lowest_y = Infinity;
-
-            multishape.forEach((shape) => {
-                shape[0].forEach(point => { // TODO: why does this extra nesting seem to only be relevant here?
-                    if (point[0] < lowest_x) {
-                        lowest_x = point[0]
-                    }
-                    if (point[1] < lowest_y) {
-                        lowest_y = point[1]
-                    }
-                })
-            })
-
-            var deg_per_su = 0;
-            var paths = multishape.map((shape) => {
-                const rawPath = shape[0]
-                const positivePath = rawPath.map((point) => [point[0] - lowest_x, point[1] - lowest_y])
-                
-                positivePath.forEach(point => {
-                    if (point[0] > deg_per_su) {
-                        deg_per_su = point[0];
-                    }
-                    if (point[1] > deg_per_su) {
-                        deg_per_su = point[1];
-                    }
-                })
-                return positivePath;
-                
-            })
-
-            paths = paths.map((positivePath) => {
-                const normalisedPath = positivePath.map((point) => [point[0]/deg_per_su, point[1]/deg_per_su])
-                return normalisedPath.map((point) => [point[0]-0.5, point[1]-0.5])
-            })
+        const renderBuildableVolume = (property) => {
+            var [paths, deg_per_su] = property.getNormalised()
 
             // Calculate heights
             // we want to convert metres to screen units. So we want s = metres * su/m = m * su/deg * deg/m
             const distanceInMetres = haversineDistance(
-                { latitude: corner_1[0], longitude: corner_1[1] },
-                { latitude: corner_1[0], longitude: corner_2[1] },
+                { latitude: params.canvasCorners.top_left[0], longitude: params.canvasCorners.top_left[1] },
+                { latitude: params.canvasCorners.top_left[0], longitude: params.canvasCorners.bottom_right[1] },
             );
-            const distanceInDegrees = Math.abs(corner_1[1] - corner_2[1]);
+            const distanceInDegrees = Math.abs(params.canvasCorners.top_left[1] - params.canvasCorners.bottom_right[1]);
             const deg_per_m = distanceInDegrees/distanceInMetres;
             const su_per_m = deg_per_m / deg_per_su; // (d/m)/(d/su)=(d/m)(su/d)=su/m
             const buildable_height = params.zoning.maximumBuildingHeight * su_per_m;
@@ -167,7 +116,7 @@ async function f() {
             })
 
             // add new property
-            shapes = renderBuildableVolume(raw_json_data[selected_shape].boundary)
+            shapes = renderBuildableVolume(properties[selected_shape])
             shapes.forEach(shape => {
                 scene.add(shape)
             })
@@ -222,7 +171,7 @@ async function f() {
 
     function renderDescription() {
         const addressText = document.getElementById('address');
-        var text = multi_shapes[selected_shape].address
+        var text = properties[selected_shape].address
         if (text === "") {
             text = "Unknown Address"
         }
@@ -260,14 +209,14 @@ async function f() {
 
     const drawSelected = () => {
         ctx.fillStyle = params.aesthetic.colours.mapView.selected;
-        fill_multishape(multi_shapes[selected_shape].boundary)
-        outline_multishape(multi_shapes[selected_shape].boundary)
+        fill_multishape(properties[selected_shape].canvasBoundaries)
+        outline_multishape(properties[selected_shape].canvasBoundaries)
     }
 
     const drawAllBoundaries = () => {
         ctx.strokeStyle = params.aesthetic.colours.mapView.boundaries;
-        multi_shapes.forEach(multi_shape => {
-            outline_multishape(multi_shape.boundary)
+        properties.forEach(property => {
+            outline_multishape(property.canvasBoundaries)
         })
     }
     
@@ -295,30 +244,10 @@ async function f() {
             if (is_new) {
                 document.body.style.cursor = 'pointer';
                 ctx.fillStyle = params.aesthetic.colours.mapView.hovered;
-                fill_multishape(multi_shapes[hovered_multishape].boundary);
+                fill_multishape(properties[hovered_multishape].canvasBoundaries);
             }
         } else {
             document.body.style.cursor = 'default';
-        }
-    }
-
-    const multi_shape_contains_point = (multi_shape, point) => {
-        for (let s = 0; s < multi_shape.length; s++) {
-            const shape = multi_shape[s];
-            for (let l = 0; l < shape.length; l++) {
-                const line = shape[l];
-                var intersection_count = 0;
-                for (let i = 0; i < line.length; i++) {
-                    const a = line[i];
-                    const b = line[(i+1)%line.length];
-                    if (doIntersect(new Point(point[0], point[1]), new Point(point[0], -100000), new Point(a[0], a[1]), new Point(b[0], b[1]))) {
-                        intersection_count++
-                    }
-                }
-                if (intersection_count % 2 == 1) {
-                    return true
-                }
-            }
         }
     }
 
@@ -329,13 +258,13 @@ async function f() {
         const shifted = ctx.getTransform().inverse().transformPoint({ x: mouseX, y: mouseY })
         var point = [shifted.x, shifted.y];
 
-        for (let i = 0; i < multi_shapes.length; i++) {
-            if (multi_shape_contains_point(multi_shapes[i].boundary, point)) {
+        for (let i = 0; i < properties.length; i++) {
+            if (properties[i].contains(point)) {
                 ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
                 ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
                 drawAllBoundaries();
                 ctx.globalCompositeOperation = "source-over";
-                outline_multishape(multi_shapes[selected_shape].boundary)
+                outline_multishape(properties[selected_shape].canvasBoundaries)
                 selected_shape = i
                 drawSelected()
                 rendernewscene()
@@ -352,14 +281,14 @@ async function f() {
         const shifted = ctx.getTransform().inverse().transformPoint({ x: mouseX, y: mouseY })
         var point = [shifted.x, shifted.y];
 
-        if (hovered_multishape != -1 && multi_shape_contains_point(multi_shapes[hovered_multishape].boundary, point)) {
+        if (hovered_multishape != -1 && properties[hovered_multishape].contains(point)) {
             drawHighlighting(hovered_multishape)
             return
         }
 
         var new_hovered = -1
-        for (let i = 0; i < multi_shapes.length; i++) { // TODO: optimise this by checking neighbours first
-            if (multi_shape_contains_point(multi_shapes[i].boundary, point)) {
+        for (let i = 0; i < properties.length; i++) { // TODO: optimise this by checking neighbours first
+            if (properties[i].contains(point)) {
                 new_hovered = i
                 break
             }
@@ -373,7 +302,7 @@ async function f() {
     })
 
     window.addEventListener('resize', () => {
-        multi_shapes = resize_shapes(raw_json_data)
+        resize_shapes()
         ctx.drawImage(myImage, 0, 0, canvas.width, canvas.height);
         drawAllBoundaries()
         drawHighlighting(hovered_multishape, true)
