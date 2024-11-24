@@ -6,6 +6,10 @@ import { haversineDistance } from '/js/haversine.mjs'
 const params = {
     zoning: {
         maximumBuildingHeight: 27, // metres
+        edgeExclusion: {
+            width: 2, // metres
+            height: 2, // metres
+        }
     },
     suburb: "Wingatui",
     canvasCorners: {
@@ -72,7 +76,7 @@ async function f() {
         detailCanvas.replaceWith( renderer.domElement );
 
         const renderBuildableVolume = (property) => {
-            var [paths, deg_per_su] = property.getNormalised()
+            var [paths, deg_per_su, transform] = property.getNormalised()
 
             // Calculate heights
             // we want to convert metres to screen units. So we want s = metres * su/m = m * su/deg * deg/m
@@ -101,8 +105,30 @@ async function f() {
                 };
     
                 const geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-                const solidMaterial = new THREE.MeshLambertMaterial( { color: params.aesthetic.colours.volumeView.selected, reflectivity: 1 } );
+                const solidMaterial = new THREE.MeshLambertMaterial( { color: params.aesthetic.colours.volumeView.vetoing, reflectivity: 1 } );
                 new_shapes.push(new THREE.Mesh(geometry, solidMaterial));
+            })
+
+            // build neighbours
+            properties.forEach((property) => {
+                const paths = transform(property)
+                paths.forEach(path => {
+                    const shape = new THREE.Shape();
+                    shape.moveTo(path[path.length-1][0], path[path.length-1][1]);
+                    path.forEach((point) => {
+                        shape.lineTo(point[0], point[1] );
+                    })
+
+                    const extrudeSettings = {
+                        steps: 1,
+                        depth: params.zoning.edgeExclusion.height * su_per_m,
+                        bevelEnabled: false,
+                    };
+
+                    const geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+                    const solidMaterial = new THREE.MeshLambertMaterial( { color: params.aesthetic.colours.volumeView.selected, reflectivity: 1 } );
+                    new_shapes.push(new THREE.Mesh(geometry, solidMaterial));
+                })
             })
 
             return new_shapes;

@@ -72,10 +72,9 @@ export class Property {
         })
 
         var deg_per_su = 0;
-        var paths = this.latLongBoundaries.map((shape) => {
+        this.latLongBoundaries.map((shape) => {
             const rawPath = shape[0]
             const positivePath = rawPath.map((point) => [point[0] - lowest_x, point[1] - lowest_y])
-            
             positivePath.forEach(point => {
                 if (point[0] > deg_per_su) {
                     deg_per_su = point[0];
@@ -84,13 +83,17 @@ export class Property {
                     deg_per_su = point[1];
                 }
             })
-            return positivePath;
-            
         })
 
-        return [paths.map((positivePath) => {
-            const normalisedPath = positivePath.map((point) => [point[0]/deg_per_su, point[1]/deg_per_su])
-            return normalisedPath.map((point) => [point[0]-0.5, point[1]-0.5])
-        }), deg_per_su];
+        const transform = (property) => {
+            return property.latLongBoundaries.map((shape) => {
+                const rawPath = shape[0]
+                const positivePath = rawPath.map((point) => [point[0] - lowest_x, point[1] - lowest_y])
+                const normalisedPath = positivePath.map((point) => [point[0]/deg_per_su, point[1]/deg_per_su])
+                return normalisedPath.map((point) => [point[0]-0.5, point[1]-0.5])
+            })
+        }
+
+        return [transform(this), deg_per_su, transform];
     }   
 }
