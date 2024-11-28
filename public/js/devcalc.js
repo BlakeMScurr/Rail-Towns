@@ -72,6 +72,7 @@ async function f() {
         const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
         const renderer = new THREE.WebGLRenderer();
+        renderer.localClippingEnabled = true;
         renderer.setSize( overviewCanvas.width, overviewCanvas.height );
         detailCanvas.replaceWith( renderer.domElement );
 
@@ -105,12 +106,12 @@ async function f() {
                 };
     
                 const geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-                const solidMaterial = new THREE.MeshLambertMaterial( { color: params.aesthetic.colours.volumeView.vetoing, reflectivity: 1 } );
+                const solidMaterial = new THREE.MeshLambertMaterial( { color: params.aesthetic.colours.volumeView.selected, reflectivity: 1 } );
                 new_shapes.push(new THREE.Mesh(geometry, solidMaterial));
             })
 
             // build neighbours
-            properties.forEach((property) => {
+            properties.forEach((property, i) => {
                 const paths = transform(property)
                 paths.forEach(path => {
                     const shape = new THREE.Shape();
@@ -126,7 +127,14 @@ async function f() {
                     };
 
                     const geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-                    const solidMaterial = new THREE.MeshLambertMaterial( { color: params.aesthetic.colours.volumeView.selected, reflectivity: 1 } );
+                    const baseColour = params.aesthetic.colours.volumeView.vetoing;
+                    const redShift = i%5;
+                    const amount = 20;
+                    const randomisedColour = baseColour - redShift * 16^4 * amount;
+                    const solidMaterial = new THREE.MeshLambertMaterial( { 
+                        color: randomisedColour,
+                        reflectivity: 1 ,
+                    } );
                     new_shapes.push(new THREE.Mesh(geometry, solidMaterial));
                 })
             })
@@ -186,7 +194,7 @@ async function f() {
 
         function animate() {
             shapes.forEach(shape => {
-                shape.rotation.z -= 0.01
+                shape.rotation.z -= 0.005
             })
             renderer.render( scene, camera );
         }

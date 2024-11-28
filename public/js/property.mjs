@@ -56,6 +56,15 @@ export class Property {
         }
     }
 
+    // scales so that the boundary is expanded by a given width (in terms of metres)
+    addEdge(width) {
+        // move to origin
+        
+        // scale
+
+        // move back from origin
+    }
+
     getNormalised() {
         var lowest_x = Infinity;
         var lowest_y = Infinity;

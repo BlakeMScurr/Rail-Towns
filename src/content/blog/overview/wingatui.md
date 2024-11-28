@@ -17,60 +17,84 @@ description:
   Wingatui can become Dunedin's best and most vibrant township.
 ---
 
-Wingatui is the best place for a train service in Dunedin. It's the only suburb with a train station within walking distance of homes, it's uniquely situated so that a train would be much faster than driving, and it has growth potential on all sides.
+Wingatui is the best place for a train service in Dunedin. It has the only well-preserved suburban station in Dunedin, its geography makes rail faster than driving, and it has growth potential on all sides.
 
-Below, we outline our plan to bring trains back to Wingatui, and the changes neccessary to make that happen.
+We hope to convince Wingatui residents to support a new rail service, and the changes neccessary to make that happen.
 
 ## Table of Contents
 
-## Transit Oriented Development vs Suburban Sprawl
+## Why Have Rail?
 
-### Transit Oriented Development
+A train will get Wingatui residents to town faster than a car, and will increase property values.
 
-Our plan is to transform Wingatui into dense town with shops, cafes, apartments etc, and a regular train. We would limit any new traffic, and encourage new residents to walk to the station and shops. Current residents would see their property values increase significantly and benefit from the train, while enjoying a more vibrant neighbourhood without much additional traffic.
+### Speed
 
-We would use a [standard Rail Towns approach](TODO!):
-    - Legalise shops, restaurants, cafes etc in Wingatui
-    - Allow up to 6 storey buildings up to the property boundary, with the neighbours' consent
-    - Charge very high extra rates on the new tall buildings
-    - Pay for train service with extra rates
-    - Restrict car parking for new developments
-    - Add footpaths, bike paths, and traffic calming near the station
+In 1973, express trains went from Wingatui to Dunedin Railway Station in 15 minutes. Today, a car [takes 20 minutes](/assets/car_from_wingatui.png) not including parking! A modern train might take only 12 minutes (Wingatui to Dunedin [is 12km](/assets/distance_to_wingatui.png) and 10km from Wellington to Petone takes 11 minutes).
 
-### Suburban Sprawl
-
-It's tempting to think that Wingatui should just remain as it is. After all, it's a fairly picturesque sleepy suburb. A community hall, a playground, pastoral views, good backyards, a racetrack, an old train station. It's clearly very pleasant and worth preserving.
-
-But Wingatui won't exist in its current state for long. Mosgiel is sprawling eastwards, and the farmlands that contribue to Wingatui's idyllic character will soon be replaced by conventional suburban sprawl. Indeed, most of the farmland west of Wingatui Road has been rezoned for residential housing (see [2GP](https://2gp.dunedin.govt.nz/plan/pages/plan/book.aspx?exhibit=DCC2GP) rule 12.3.4.1). This will probably continue until all the farmland up to the Chain Hills is developed, as [there is a housing crisis](/posts/housing-crisis/), people need places to live, and the Taieri Plains are the easiest place to build in the city.
-
-So if Wingatui doesn't embrace transit oriented development, it will become just another corner of Mosgiel, with all the traffic and views that that implies.
-
-## Speed
-
-Before 1973, the were express trains from Monday to Friday from Wingatui to Dunedin Railway Station that took 15 minutes. In a car today, that trip takes 20 minutes, and that's not even accounting for the time it takes to find a park in the centre of town. A modern electric train might take only 12 minutes (Wingatui to Dunedin [is 12km](/assets/distance_to_wingatui.png) while the 10km from Wellington to Petone takes 11 minutes).
-
-Consider how nice it would be to commute to town without having to drive or park in  12 minutes! Consider the freedom that children in the community would get from being able to take the train.
+Consider how nice it would be to commute to town without having to drive or park in 12 minutes! Consider the freedom that children, elderly, and other non-drivers would experience due to the train.
 
 ![A scan of an old Dunedin train timetable](/assets/timetable.jpg)
 
 *From [Anthonie Tonnon's blog](https://www.anthonietonnon.com/talk/2019/1/22/rail-land-dunedins-forgotten-railway-system-and-small-city-urbanism-in-aotearoa), originally from Hocken Collections*
 
-## Parking
+### Property Values
+
+Firstly, property values increase due to proximity to public transport. For example, in the UK, properties near a train station have a [10% higher value](https://www.struttandparker.com/knowledge-and-research/how-new-transport-infrastructure-affects-property-prices-and-saleability#:~:text=Research%20by%20Nationwide%20shows%20that,reflected%20in%20other%20large%20cities) than comparable properties.
+
+But much more importantly, trains will let us rezone Wingatui for high density - the DCC rejects most housing developments because they generate traffic, but dense housing around a train station caters to a car-free lifestyle. Imagine, for example, several townhouses or an apartment block instead of a single family home. This should radically increase the value of land in Wingatui.
+
+## Why Not Have Rail?
+
+Upzoning is essential to justify and pay for any rail service, and we acknowledge that this would be a radical change to your suburb.
+
+You might oppose developments due to shading, noise, privacy, traffic, parking, aesthetics, love of the way things are, or any number of other reasons.
+
+We have carefully considered the above reasons, and designed zoning rules that should solve all these problems.
+
+### I Like Things the Way They Are
+
+Wingatui is beautiful the way it is, the pastoral views, country roads, quiet streets.
+
+Our plan would certainly change that, and if you firmly believe Wingatui must retain its character we have to respect your preference.
+
+However, we believe things can change for the better, and encourage you to consider what a pleasant place your suburb might become if it were allowed to develop. Imagine if Gladstone Road near Wingatui Hall became a little town centre: a dairy, a fish and chip shop, a Four Square, and a laundromat beside the playground; imagine a complete footpath network, safe for kids to roam about; imagine an old character home converted into a cafe with garden seating within a quick walk; imagine new paths up into the hills and parks.
+
+That's kind of suburb that can grow organically if we allow people to build and do business, and demand quality infrastructure from developers.
+
+Conversely, it's unlikely that Wingatui will remain idyllic forever - Mosgiel is sprawling outwards, and even if you don't like our plan compared to the way things are, you may agree that it's better than Wingatui being subsumed by bland suburbia.
+
+### Bad Neighbours
+
+Shading, noise, and privacy, are fundamentally neighbourly problems: if a new building is built beside you, you are the person who is primarily harmed.
+
+Therefore, we suggest that you should be able to veto any construction that affects you directly. This guarantees you won't be harmed by tall buildings, and lets you negotiate for compensation if your neighbours want to build.
+
+This is good if you want to build too. You don't have to ask the DCC for a resource consent for a prohibited activity - you just need your neighbour's approval.
+
+This applies to buildings near boundaries as well as tall buildings. Currently, you cannot build within 2m of a property boundary (see [2GP](https://2gp.dunedin.govt.nz/plan/pages/plan/book.aspx?hid=1660) rule 15.6.13.1), but under our proposal, you can build anywhere on your property if you have your neighbour's consent:
+> Buildings must setback 2m from the property boundary unless all neighbours whose property is within 2m of the building consent.
+
+Notice how the new rule doesn't actually allow any new construction unless the neighbours approve it? Similarly for height, [2GP](https://2gp.dunedin.govt.nz/plan/pages/plan/book.aspx?hid=1660) rule 15.6.6.1 means no one can build above certain points on their property. We keep those exact restrictions, but allow neighbours to lift them if they want to. Under our proposal:
+> A building requires the consent of a nearby resident if it intersects any line rising at 45 degrees from a point 2.5m above any point on that resident's property.
+
+This may be confusing, so we've built a tool to let you explore how much you can build on your property under our proposal. Select the property you're interested in by zooming in on the left hand side, and you'll see a 3D model of how much you can build under our proposal. You can toggle your neighbours on and off to see what it looks like if they consent or not.
+
+#### Development Calculator
+
+Note, we've set an absolute maximum height of 27m. This is because, at a certain point, we believe tall building are a matter of public concern regardless of the neighbours' opinion, especially when they differ significantly from the height of the surrounding buildings.
+
+### Parking
 
 More construction means more people, which can mean more traffic and less parking. However, we can restrict car usage on new residents so that new people are good for the community rather than bad. We argue that Wingatui should welcome as many car-free residents as possible - they will bring shopping and activity, and contribute to the community, while not harming the existing way of life.
 
-### Exclusive Street Parking
+#### Exclusive Street Parking
 
-On-street parking should be allocated to the homes it's adjacent to. If parking is a free-for-all, and the population is increased, new residents will inevitably buy cars and there will be a scramble for parking. By fairly allocating the parking, we can ensure everyone in Wingatui with a car will be able to continue to use it.
+We propose making all parking authorised residents only. If parking is a free-for-all, and the population is increased, new residents will inevitably buy cars and there will be a scramble for parking. By fairly allocating the parking, we can ensure everyone currently living in Wingatui with a car will be able to continue to use it.
 
-The parking rule will be roughly:
-> Street parking is exclusively reserved for the owners of the adjacent land. Others can park there only by express permission.
+The parking rule will be:
+> Street parking is exclusively reserved for authorised residents, others can park by permission only. Street parking is to be evenly distributed to each property, minimising walking distance between parking spaces and properties, and auctioning leftovers. Parking space is allocated once then locked in.
 
-This arrangement will not be perfect for everyone, as some people without driveways might currently rely on on-street parking. We suspect that this arrangement will be suitable, but if it's not, we can create a more complex rule that shares parking amongst neighbours so that sections without much land adjacent to the street will still get much of the parking.
-
-Note that this scheme is very flexible as parking can be leased at will.
-
-### New Parking
+#### New Parking
 
 The zoning rules will not allow any new parking for any apartments.
 
@@ -78,24 +102,4 @@ Our building rules are slightly unconventional, in that they are voluntary. If y
 
 This means that new development inherently relies on public transport and can't contribute new traffic.
 
-## Height and Setbacks
-
-The new zoning rules will allow dense tall construction without a resource consent. However, it will require the consent of the neighbours.
-
-### Setbacks
-
-Wingatui is currently zoned residential 1, which means buildings must be 4.5m from a road, 2m from a boundary, and 1m from any right of way (see 2GP 15.6.13.1). By consenting to the new rules, land owners would no longer need any setback from a road or right of way, however, they'd still need a 2m setback from the boundary unless that neighbour consented.
-
-The boundary setback rule will be roughly:
-> Buildings must setback 2m from the property boundary unless all neighbours whose property is within 2m of the building consent.
-
-### Height
-
-If a land owner consents to the new zoning, their maximum building height will be increased from 9m to 27m. We have decided to have a maximum building height at all because apartment towers may not be in the general public interest, whereas smaller apartments are an issue between neighbours.
-
-However, as with setbacks, if the neighbours don't consent, there may be no additional rights to build. Again, as with setbacks, the height above the exclusion zone won't be a strict rule, but rather a area where neighbour's consent is needed. Contrast the following with 2GP rule 15.6.6.1:
-> A building requires the consent of a nearby resident if it intersects any line rising at 45 degrees from a point 2.5m above any point on that resident's property.
-
-## Development Calculator
-
-## Land Usage
+## Aesthetics
