@@ -49,11 +49,11 @@ Upzoning is essential to justify and pay for any rail service, and we acknowledg
 
 You might oppose developments due to shading, noise, privacy, traffic, parking, aesthetics, love of the way things are, extra rates, or any number of other reasons.
 
-We have carefully considered the above reasons, and designed zoning rules that should solve all these problems.
+We have carefully considered these issues, and designed zoning rules that almost entirely solve them.
 
 ### Extra Rates
 
-Our plan won't impose any additional rates on residents - that would be highly immoral. Instead, the train will be paid for by developers who want to build densely in Wingatui. Those developers must agree to extra voluntary rates to get the right to build apartments etc, because those apartments rely on the train to be viable.
+Our plan won't impose any additional rates on residents who don't want them - we consider that unethical. Instead, the train will be paid for by developers who want to build densely in Wingatui. Those developers must agree to extra voluntary rates to get the right to build apartments etc, because those apartments rely on the train to be viable.
 
 Property owners who aren't interested in building densely will keep their current rates.
 

@@ -18,6 +18,8 @@ Specifically, the government [told](https://environment.govt.nz/publications/nat
 
 We believe this is a big mistake given that [there is a housing crisis](/posts/housing-crisis), and in this post we outline a better way of thinking about housing capacity and rebut the assessment in detail.
 
+## Table of Contents
+
 # The More the Better
 
 Having more housing capacity is good.

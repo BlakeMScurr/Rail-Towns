@@ -13,10 +13,9 @@ import { SITE, SOCIALS } from "@config";
 const posts = await getCollection("blog");
 
 const sortedPosts = getSortedPosts(posts);
-const overviewPosts = sortedPosts.filter(({ data }) => data.overview);
-const recentPosts = sortedPosts.filter(({ data }) => data.suburbPage);
 
 const socialCount = SOCIALS.filter(social => social.active).length;
+
 ---
 
 <Layout>
@@ -40,12 +39,13 @@ const socialCount = SOCIALS.filter(social => social.active).length;
       <p>
         Good transport design lets us build densely, which will make housing abundant and cheap.
       </p>
+
+      <p>A good place to start is our <a href="/posts/wingatui" class="prose">plan for Wingatui</a> or <a href="/posts/housing-crisis" class="prose">housing crisis post</a>.</p>
       
       {
         // only display if at least one social link is enabled
         socialCount > 0 && (
           <div class="social-wrapper">
-            <div class="social-links">Social Links:</div>
             <Socials />
           </div>
         )
@@ -55,31 +55,11 @@ const socialCount = SOCIALS.filter(social => social.active).length;
     <Hr />
 
     {
-      overviewPosts.length > 0 && (
-        <>
-          <section id="featured">
-            <h2>Featured</h2>
-            <ul>
-              {overviewPosts.map(({ data, slug }) => (
-                <Card
-                  href={`/posts/${slug}/`}
-                  frontmatter={data}
-                  secHeading={false}
-                />
-              ))}
-            </ul>
-          </section>
-          {recentPosts.length > 0 && <Hr />}
-        </>
-      )
-    }
-
-    {
-      recentPosts.length > 0 && (
+      sortedPosts.length > 0 && (
         <section id="recent-posts">
           <h2>Recent Posts</h2>
           <ul>
-            {recentPosts.map(
+            {sortedPosts.map(
               ({ data, slug }, index) =>
                 index < SITE.postPerIndex && (
                   <Card
@@ -144,5 +124,14 @@ const socialCount = SOCIALS.filter(social => social.active).length;
   }
   .all-posts-btn-wrapper {
     @apply my-8 text-center;
+  }
+
+  .prose {
+    text-decoration: underline;
+    font-weight: 500;
+    --tw-text-opacity: 1 !important;
+    color: rgba(40, 39, 40, 1 !important) !important;
+    text-decoration-style: dashed !important;
+    text-underline-offset: 8px;
   }
 </style>
