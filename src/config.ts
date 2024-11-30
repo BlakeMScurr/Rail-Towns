@@ -34,13 +34,13 @@ export const LOGO_IMAGE = {
 export const SOCIALS: SocialObjects = [
   {
     name: "Facebook",
-    href: "https://github.com/satnaing/astro-paper",
+    href: "https://github.com/blakemscurr/rail-towns",
     linkTitle: `${SITE.title} on Facebook`,
     active: true,
   },
   {
     name: "Github",
-    href: "https://github.com/satnaing/astro-paper",
+    href: "https://github.com/blakemscurr/rail-towns",
     linkTitle: ` ${SITE.title} on Github`,
     active: true,
   },
